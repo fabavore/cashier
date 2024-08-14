@@ -8,10 +8,7 @@ app_ui <- function(request) {
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
-    # Your application UI logic
-    fluidPage(
-      h1("cashier")
-    )
+    mod_dashboard_ui("dashboard_1")
   )
 }
 
