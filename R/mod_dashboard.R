@@ -7,6 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
+#' @importFrom bs4Dash sidebarMenu menuItem tabItems tabItem
 mod_dashboard_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -15,15 +16,16 @@ mod_dashboard_ui <- function(id){
         title = bs4Dash::dashboardBrand("CashieR Finance Manager")
       ),
       bs4Dash::dashboardSidebar(
-        bs4Dash::sidebarMenu(
-          bs4Dash::menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
-          bs4Dash::menuItem("Expenses", tabName = "expenses", icon = icon("file-invoice-dollar")),
-          bs4Dash::menuItem("Revenues", tabName = "revenues", icon = icon("money-bill-alt"))
+        sidebarMenu(
+          menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
+          menuItem("Transactions", tabName = "transactions", icon = icon("money-bill-transfer"), selected = T),
+          menuItem("Expenses", tabName = "expenses", icon = icon("file-invoice-dollar")),
+          menuItem("Revenues", tabName = "revenues", icon = icon("money-bill-alt"))
         )
       ),
       bs4Dash::dashboardBody(
-        bs4Dash::tabItems(
-          bs4Dash::tabItem(
+        tabItems(
+          tabItem(
             tabName = "overview",
             fluidRow(
               bs4Dash::box(
@@ -43,20 +45,26 @@ mod_dashboard_ui <- function(id){
             ),
             fluidRow(
               bs4Dash::box(
-                title = "Expenses vs Revenues",
+                title = "Expenses vs Income",
                 width = 12,
                 solidHeader = TRUE,
                 status = "primary",
-                plotly::plotlyOutput(ns("expenses_revenues_plot"))
+                plotly::plotlyOutput(ns("expenses_vs_income_plot"))
               )
             )
           ),
-          bs4Dash::tabItem(
+          tabItem(
+            tabName = "transactions",
+
+            # Include the transactions module UI here
+            mod_transactions_ui(ns("transactions_1"))
+          ),
+          tabItem(
             tabName = "expenses",
             h2("Expenses"),
             p("This is the expenses tab.")
           ),
-          bs4Dash::tabItem(
+          tabItem(
             tabName = "revenues",
             h2("Revenues"),
             p("This is the revenues tab.")
@@ -86,10 +94,19 @@ mod_dashboard_ui <- function(id){
 
 #' dashboard Server Functions
 #'
+#' @importFrom plotly renderPlotly plot_ly layout add_trace
+#' @importFrom dplyr mutate group_by summarize if_else
+#' @importFrom tidyr pivot_wider
+#'
 #' @noRd
 mod_dashboard_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
+    transactions_data <- reactiveVal()
+
+    # Call the transactions module server
+    mod_transactions_server("transactions_1", transactions_data)
 
     # Mock data for the net worth plot
     net_worth_data <- data.frame(
@@ -112,46 +129,78 @@ mod_dashboard_server <- function(id){
       revenues = rnorm(12, mean = 2000, sd = 400)
     )
 
-    # Render the net worth plot
-    output$net_worth_plot <- plotly::renderPlotly({
-      plotly::plot_ly(
-        net_worth_data, x = ~date, y = ~net_worth, type = 'scatter', mode = 'lines+markers',
-        line = list(color = 'blue'), marker = list(color = 'red')
-      ) |>
-        plotly::layout(
+    # Generate the Net Worth chart using Plotly
+    output$net_worth_plot <- renderPlotly({
+      data <- transactions_data()
+      req(nrow(data) > 0)
+
+      net_worth <- data |>
+        group_by(booking_date) |>
+        summarize(Net_Worth = sum(Amount, na.rm = TRUE))
+
+      net_worth |>
+        plot_ly(
+          x = ~booking_date, y = ~Net_Worth,
+          type = 'scatter', mode = 'lines'
+        ) |>
+        layout(
+          title = "Net Worth Over Time",
           xaxis = list(title = "Date"),
-          yaxis = list(title = "Net Worth ($)"),
-          hovermode = "x unified"
+          yaxis = list(title = "Net Worth (EUR)")
         )
     })
 
-    # Render the cash flow plot with Plotly
-    output$cash_flow_plot <- plotly::renderPlotly({
-      plotly::plot_ly(cash_flow_data, x = ~date) |>
-        plotly::add_trace(y = ~cash_inflow, type = 'scatter', mode = 'lines', name = 'Cash Inflow',
-                  fill = 'tozeroy', line = list(color = 'green')) |>
-        plotly::add_trace(y = ~cash_outflow, type = 'scatter', mode = 'lines', name = 'Cash Outflow',
-                  fill = 'tozeroy', line = list(color = 'red')) |>
-        plotly::layout(
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Amount ($)"),
-               hovermode = "x unified",
-               legend = list(x = 0, y = 1))
+    # Generate the Cash Flow chart using Plotly
+    output$cash_flow_plot <- renderPlotly({
+      data <- transactions_data()
+      req(nrow(data) > 0)
+
+      cash_flow <- data |>
+        mutate(
+          Month = zoo::as.yearmon(booking_date),
+          Type = ifelse(Amount >= 0, "Income", "Expense")
+        ) |>
+        group_by(Month, Type) |>
+        summarize(Cash_Flow = sum(Amount, na.rm = TRUE), .groups = 'drop') |>
+        pivot_wider(names_from = Type, values_from = Cash_Flow, values_fill = list(Cash_Flow = 0))
+
+      plot_ly(cash_flow, x = ~Month) |>
+        add_trace(y = ~Income, name = 'Income', type = 'scatter', mode = 'lines+markers', fill = 'tozeroy', line = list(color = 'green')) |>
+        add_trace(y = ~Expense, name = 'Expense', type = 'scatter', mode = 'lines+markers', fill = 'tozeroy', line = list(color = 'red')) |>
+        layout(
+          title = "Cash Flow Over Time",
+          xaxis = list(title = "Month"),
+          yaxis = list(title = "Cash Flow"),
+          legend = list(title = list(text = "Type")),
+          hovermode = "x"
+        )
     })
 
-    # Render the expenses vs revenues plot with Plotly
-    output$expenses_revenues_plot <- plotly::renderPlotly({
-      plotly::plot_ly(expenses_revenues_data, x = ~month)  |>
-        plotly::add_trace(y = ~expenses, type = 'bar', name = 'Expenses',
-                  marker = list(color = 'red')) |>
-        plotly::add_trace(y = ~revenues, type = 'bar', name = 'Revenues',
-                  marker = list(color = 'green')) |>
+    # Generate the Expenses vs Revenues chart using Plotly
+    output$expenses_vs_income_plot <- renderPlotly({
+      data <- transactions_data()
+      req(nrow(data) > 0)
+
+      cash_flow <- data |>
+        mutate(
+          Month = zoo::as.yearmon(booking_date),
+          Type = ifelse(Amount >= 0, "Income", "Expense")
+        ) |>
+        group_by(Month, Type) |>
+        summarize(Cash_Flow = sum(Amount, na.rm = TRUE), .groups = 'drop') |>
+        pivot_wider(names_from = Type, values_from = Cash_Flow, values_fill = list(Cash_Flow = 0))
+
+      plotly::plot_ly(cash_flow, x = ~Month)  |>
+        plotly::add_trace(y = ~Expense, type = 'bar', name = 'Expenses',
+                          marker = list(color = 'red')) |>
+        plotly::add_trace(y = ~Income, type = 'bar', name = 'Income',
+                          marker = list(color = 'green')) |>
         plotly::layout(
-               xaxis = list(title = "Month"),
-               yaxis = list(title = "Amount ($)"),
-               barmode = 'group',
-               hovermode = "x unified",
-               legend = list(x = 0, y = 1))
+          xaxis = list(title = "Month"),
+          yaxis = list(title = "Amount ($)"),
+          barmode = 'group',
+          hovermode = "x unified",
+          legend = list(x = 0, y = 1))
     })
   })
 }

@@ -6,8 +6,13 @@ Authors@R:
 Description: A personal finance manager.
 License: MIT + file LICENSE
 Imports: 
+    bs4Dash,
     config (>= 0.3.2),
+    dplyr,
+    DT,
     golem (>= 0.4.1),
+    plotly,
+    readr,
     shiny (>= 1.9.1)
 Suggests: 
     spelling,
