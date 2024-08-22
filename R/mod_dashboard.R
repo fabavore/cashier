@@ -108,27 +108,6 @@ mod_dashboard_server <- function(id){
     # Call the transactions module server
     mod_transactions_server("transactions_1", transactions_data)
 
-    # Mock data for the net worth plot
-    net_worth_data <- data.frame(
-      date = seq(as.Date("2024-01-01"), by = "month", length.out = 12),
-      net_worth = cumsum(rnorm(12, mean = 1000, sd = 200))
-    )
-
-    # Mock data for the cash flow plot
-    cash_flow_data <- data.frame(
-      date = seq(as.Date("2024-01-01"), by = "month", length.out = 12),
-      cash_inflow = cumsum(rnorm(12, mean = 2000, sd = 500)),
-      cash_outflow = cumsum(rnorm(12, mean = 1500, sd = 400))
-    )
-    cash_flow_data$net_cash_flow <- cash_flow_data$cash_inflow - cash_flow_data$cash_outflow
-
-    # Mock data for the expenses vs revenues plot
-    expenses_revenues_data <- data.frame(
-      month = factor(month.abb, levels = month.abb),
-      expenses = rnorm(12, mean = 1500, sd = 300),
-      revenues = rnorm(12, mean = 2000, sd = 400)
-    )
-
     # Generate the Net Worth chart using Plotly
     output$net_worth_plot <- renderPlotly({
       data <- transactions_data()
@@ -157,7 +136,7 @@ mod_dashboard_server <- function(id){
 
       cash_flow <- data |>
         mutate(
-          Month = zoo::as.yearmon(booking_date),
+          Month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 1),
           Type = ifelse(Amount >= 0, "Income", "Expense")
         ) |>
         group_by(Month, Type) |>
@@ -166,7 +145,7 @@ mod_dashboard_server <- function(id){
 
       plot_ly(cash_flow, x = ~Month) |>
         add_trace(y = ~Income, name = 'Income', type = 'scatter', mode = 'lines+markers', fill = 'tozeroy', line = list(color = 'green')) |>
-        add_trace(y = ~Expense, name = 'Expense', type = 'scatter', mode = 'lines+markers', fill = 'tozeroy', line = list(color = 'red')) |>
+        add_trace(y = ~-Expense, name = 'Expense', type = 'scatter', mode = 'lines+markers', fill = 'tozeroy', line = list(color = 'red')) |>
         layout(
           title = "Cash Flow Over Time",
           xaxis = list(title = "Month"),
@@ -183,7 +162,7 @@ mod_dashboard_server <- function(id){
 
       cash_flow <- data |>
         mutate(
-          Month = zoo::as.yearmon(booking_date),
+          Month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 1),
           Type = ifelse(Amount >= 0, "Income", "Expense")
         ) |>
         group_by(Month, Type) |>
@@ -191,7 +170,7 @@ mod_dashboard_server <- function(id){
         pivot_wider(names_from = Type, values_from = Cash_Flow, values_fill = list(Cash_Flow = 0))
 
       plotly::plot_ly(cash_flow, x = ~Month)  |>
-        plotly::add_trace(y = ~Expense, type = 'bar', name = 'Expenses',
+        plotly::add_trace(y = ~-Expense, type = 'bar', name = 'Expenses',
                           marker = list(color = 'red')) |>
         plotly::add_trace(y = ~Income, type = 'bar', name = 'Income',
                           marker = list(color = 'green')) |>
