@@ -54,6 +54,5 @@ Let's plot the net worth over time for better insights:
 ```{r}
 fig <- plot_net_worth(net_worth)
 fig
-plot_net_worth_by_day_and_month(net_worth)
 ```
 

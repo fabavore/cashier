@@ -40,7 +40,10 @@ plot_net_worth <- function(net_worth) {
     # Add daily net worth line
     add_lines(data = net_worth, x = ~Date, y = ~NetWorth, name = "Daily Net Worth") |>
     # Add monthly net worth line
-    add_lines(data = net_worth_monthly, x = ~Month, y = ~NetWorth, name = "Monthly Net Worth") |>
+    add_lines(
+      data = net_worth_monthly, x = ~Month, y = ~NetWorth,
+      name = "Monthly Net Worth", line = list(shape = "spline")
+    ) |>
     config(
 
     ) |>

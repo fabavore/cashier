@@ -30,14 +30,16 @@ mod_dashboard_ui <- function(id){
             fluidRow(
               bs4Dash::box(
                 title = "Net Worth Over Time",
-                width = 6,
+                width = 12,
                 solidHeader = TRUE,
                 status = "primary",
                 plotly::plotlyOutput(ns("net_worth_plot"))
-              ),
+              )
+            ),
+            fluidRow(
               bs4Dash::box(
                 title = "Cash Flow Over Time",
-                width = 6,
+                width = 12,
                 solidHeader = TRUE,
                 status = "primary",
                 plotly::plotlyOutput(ns("cash_flow_plot"))
