@@ -1,0 +1,70 @@
+---
+title: "import"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{import}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+This vignette provides an overview of the `process_csv` function, which 
+is designed to import and preprocess financial transaction data from a CSV file. 
+This function handles tasks such as reading data, cleaning, and renaming columns, 
+making it easier for you to analyze your financial data.
+
+# Prerequisites
+
+Load the required packages:
+
+```{r setup}
+library(tidyverse)
+# library(cashier)
+devtools::load_all()
+```
+
+# Function Overview
+
+The `process_csv` function performs the following tasks:
+
+1. Imports Data: Reads financial transactions from a CSV file.
+2. Handles Locale Settings: Converts date formats, decimal separators, and column types based on locale.
+3. Renames Columns: Renames columns to shorter, more intuitive names.
+4. Prepares Data: Ensures the data is ready for further analysis.
+
+# Arguments
+
+- `file_path`: The file path to the CSV file containing your transaction data. 
+This file should be formatted with `;` as a separator, `,` as a decimal mark, 
+and dates in `dd.mm.yyyy` format.
+
+# Details
+
+The `process_transactions` function reads a CSV file containing financial transactions and performs several key operations to ensure the data is in a usable format. Specifically:
+
+- Locale Handling: Since the CSV uses a comma as a decimal mark and a period as a grouping mark, the locale() function is used to correctly interpret these values during import.
+- Column Renaming: After loading the data, the columns are renamed to shorter, more descriptive names to make further analysis easier.
+- Date Parsing: Dates are automatically parsed into Date objects.
+
+# Example Usage
+
+Suppose you have a CSV file named `transactions.csv`. You can process this file as follows:
+
+```{r example usage}
+# Path to your CSV file
+file_path <- "../inst/extdata/sample_transactions.csv"
+
+# Process the transactions
+transactions <- process_csv(file_path)
+
+# View the first few rows of the processed data
+head(transactions)
+```

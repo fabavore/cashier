@@ -1,68 +1,58 @@
-#' Process Transactions CSV
+#' Process Financial Transactions from CSV File
 #'
-#' This function imports a CSV file containing transaction data, selects and renames only the relevant columns,
-#' and processes date and numeric fields. The function is designed to handle CSV files with specific formats
-#' and delimiters commonly used for financial transaction records.
+#' @description
+#' This function reads financial transaction data from a CSV file, processes it, and returns a clean data frame. The CSV file is expected to use `;` as a separator, `,` as a decimal mark, and dates in `dd.mm.yyyy` format. The function renames columns to shorter, intuitive names, and converts dates and amounts into appropriate formats.
 #'
-#' @param file_path A character string specifying the path to the CSV file to be processed.
-#' The CSV file must use a semicolon (`;`) as the delimiter and a comma (`,`) as the decimal mark.
-#' The date format in the CSV should be `day.month.year` (e.g., `24.01.2024`).
+#' @param file_path A string specifying the file path to the CSV file containing the transaction data.
 #'
-#' @return A tibble (data frame) with the following columns:
-#' \describe{
-#'   \item{account_iban}{The IBAN of the account where the transaction originated.}
-#'   \item{booking_date}{The date the transaction was booked, in `Date` format (YYYY-MM-DD).}
-#'   \item{value_date}{The date value of the transaction.}
-#'   \item{payer_name}{The name of the payee or payer.}
-#'   \item{payer_iban}{The IBAN of the payee or payer.}
-#'   \item{type}{The type of the transaction, previously referred to as `Buchungstext`.}
-#'   \item{purpose}{The purpose of the transaction.}
-#'   \item{amount}{The amount of the transaction. Positive values indicate income, negative values indicate expenses.}
-#'   \item{currency}{The currency of the transaction amount.}
+#' @return A data frame with the following columns:
+#' \itemize{
+#'   \item \code{Account_IBAN}}: The user's IBAN.
+#'   \item \code{Booking_Date}: The transaction booking date (as a Date object).
+#'   \item \code{Value_Date}: The date the transaction is effective (as a Date object).
+#'   \item \code{Payer_Name}: The name of the counterparty.
+#'   \item \code{Payer_IBAN}: The counterparty's IBAN.
+#'   \item \code{Transactions_Type}: The type of transaction (e.g., Direct Debit, Transfer, Salary).
+#'   \item \code{Purpose}: The purpose of the transaction (e.g., Rent payment, Groceries).
+#'   \item \code{Amount}: The transaction amount (positive for inflows, negative for outflows).
+#'   \item \code{Currency}: The currency of the transaction (e.g., EUR).
 #' }
 #'
 #' @details
-#' The function reads the CSV file with the specified encoding, delimiter, and column types. It selects and renames
-#' the relevant columns to shorter English names for ease of use in further processing. The `booking_date` column
-#' is converted to `Date` format for accurate date handling. Only the specified columns are read from the CSV,
-#' ignoring any additional columns present in the file.
+#' The function automatically handles locale-specific settings, such as decimal marks and date formats, using the `readr` and `dplyr` packages. It expects specific columns in the CSV file and will only import those relevant to transaction processing.
 #'
-#' @importFrom readr read_csv2 locale cols_only col_character col_date col_double
-#' @importFrom dplyr select
-#' @param file_path The path to the CSV file to read.
-#' @return A tibble with the processed data.
 #' @examples
-#' # Example usage:
-#' # Assuming 'transactions.csv' is in the current working directory
-#' processed_data <- process_transactions("transactions.csv")
-#' head(processed_data)
+#' \dontrun{
+#' # Assuming you have a CSV file named "transactions.csv"
+#' file_path <- "path/to/transactions.csv"
+#' transactions <- process_csv(file_path)
+#' head(transactions)
+#' }
 #'
-#' @noRd
-process_transactions <- function(file_path) {
-  file_path |>
-    read_csv2(
-      locale = locale(encoding = "latin1"),
-      col_types = cols_only(
-        `IBAN Auftragskonto` = col_character(),
-        `Buchungstag` = col_date(format = "%d.%m.%Y"),
-        `Valutadatum` = col_date(format = "%d.%m.%Y"),
-        `Name Zahlungsbeteiligter` = col_character(),
-        `IBAN Zahlungsbeteiligter` = col_character(),
-        `Buchungstext` = col_character(),
-        `Verwendungszweck` = col_character(),
-        `Betrag` = col_double(),
-        `Waehrung` = col_character()
-      )
-    ) |>
-    select(
-      account_iban = `IBAN Auftragskonto`,
-      booking_date = `Buchungstag`,
-      value_date = `Valutadatum`,
-      payer_name = `Name Zahlungsbeteiligter`,
-      payer_iban = `IBAN Zahlungsbeteiligter`,
-      type = `Buchungstext`,
-      purpose = `Verwendungszweck`,
-      Amount = `Betrag`,
-      currency = `Waehrung`
+#' @importFrom readr read_csv2 cols col_character col_date col_double
+#' @importFrom dplyr select
+#' @export
+process_csv <- function(file_path) {
+  transactions <- read_csv2(
+    file_path,
+    col_types = cols(
+      .default = col_character(),
+      Buchungstag = col_date(format = "%d.%m.%Y"),
+      Valutadatum = col_date(format = "%d.%m.%Y"),
+      Betrag = col_double()
     )
+  ) |>
+    select(
+      Account_IBAN = `IBAN Auftragskonto`,
+      Booking_Date = `Buchungstag`,
+      Value_Date = `Valutadatum`,
+      Payer_Name = `Name Zahlungsbeteiligter`,
+      Payer_IBAN = `IBAN Zahlungsbeteiligter`,
+      Transactions_Type = `Buchungstext`,
+      Purpose = `Verwendungszweck`,
+      Amount = `Betrag`,
+      Currency = `Waehrung`
+    )
+
+  return(transactions)
 }

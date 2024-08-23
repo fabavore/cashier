@@ -47,6 +47,8 @@ usethis::use_test("app")
 
 ## Vignette ----
 usethis::use_vignette("cashier")
+usethis::use_vignette("import")
+usethis::use_vignette("plots")
 devtools::build_vignettes()
 
 ## Code Coverage----
