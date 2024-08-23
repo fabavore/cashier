@@ -15,18 +15,9 @@ mod_transactions_ui <- function(id){
       status = "primary",
       solidHeader = TRUE,
       width = 12,
-      fluidRow(
-        column(
-          width = 12,
-          actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload"))
-        )
-      ),
-      fluidRow(
-        column(
-          width = 12,
-          DT::DTOutput(ns("transactions_table"))
-        )
-      )
+      actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload")),
+      br(), br(),
+      DT::DTOutput(ns("transactions_table"))
     )
   )
 }
@@ -48,7 +39,7 @@ mod_transactions_server <- function(id, transactions_data){
       req(input$transactions_file)
 
       # Process the uploaded file
-      new_data <- process_transactions(input$transactions_file$datapath)
+      new_data <- process_csv(input$transactions_file$datapath)
       new_data
     }) |> bindEvent(input$import)
 

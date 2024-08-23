@@ -1,0 +1,59 @@
+---
+title: "analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+This vignette demonstrates how to analyze your financial transactions using the `transactions` dataset. 
+We will generate useful insights such as net worth over time, cash flow analysis, and income and expenses trends.
+
+# Prerequisites
+
+Load the required packages:
+
+```{r setup}
+library(tidyverse)
+library(plotly)
+# library(cashier)
+devtools::load_all()
+```
+
+# Loading the Transactions Data
+
+First, let's load the `transactions` dataset:
+
+```{r load data}
+data("sample_transactions")
+head(transactions)
+```
+
+# Net Worth
+
+Now for a start, we will calculate the net worth over time, i.e. the cumulative 
+sum of the total transaction amounts:
+
+```{r example}
+net_worth <- calculate_net_worth(transactions)
+head(net_worth)
+```
+
+Let's plot the net worth over time for better insights:
+
+```{r}
+fig <- plot_net_worth(net_worth)
+fig
+plot_net_worth_by_day_and_month(net_worth)
+```
+

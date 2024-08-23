@@ -113,20 +113,7 @@ mod_dashboard_server <- function(id){
       data <- transactions_data()
       req(nrow(data) > 0)
 
-      net_worth <- data |>
-        group_by(booking_date) |>
-        summarize(Net_Worth = sum(Amount, na.rm = TRUE))
-
-      net_worth |>
-        plot_ly(
-          x = ~booking_date, y = ~Net_Worth,
-          type = 'scatter', mode = 'lines'
-        ) |>
-        layout(
-          title = "Net Worth Over Time",
-          xaxis = list(title = "Date"),
-          yaxis = list(title = "Net Worth (EUR)")
-        )
+      data |> calculate_net_worth() |> plot_net_worth()
     })
 
     # Generate the Cash Flow chart using Plotly
@@ -136,7 +123,7 @@ mod_dashboard_server <- function(id){
 
       cash_flow <- data |>
         mutate(
-          Month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 1),
+          Month = zoo::as.yearmon(BookingDate) |> zoo::as.Date(frac = 1),
           Type = ifelse(Amount >= 0, "Income", "Expense")
         ) |>
         group_by(Month, Type) |>
@@ -162,7 +149,7 @@ mod_dashboard_server <- function(id){
 
       cash_flow <- data |>
         mutate(
-          Month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 1),
+          Month = zoo::as.yearmon(BookingDate) |> zoo::as.Date(frac = 1),
           Type = ifelse(Amount >= 0, "Income", "Expense")
         ) |>
         group_by(Month, Type) |>

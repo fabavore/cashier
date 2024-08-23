@@ -7,12 +7,12 @@
 #'
 #' @return A data frame with the following columns:
 #' \itemize{
-#'   \item \code{Account_IBAN}}: The user's IBAN.
-#'   \item \code{Booking_Date}: The transaction booking date (as a Date object).
-#'   \item \code{Value_Date}: The date the transaction is effective (as a Date object).
-#'   \item \code{Payer_Name}: The name of the counterparty.
-#'   \item \code{Payer_IBAN}: The counterparty's IBAN.
-#'   \item \code{Transactions_Type}: The type of transaction (e.g., Direct Debit, Transfer, Salary).
+#'   \item \code{AccountIBAN}: The user's IBAN.
+#'   \item \code{BookingDate}: The transaction booking date (as a Date object).
+#'   \item \code{ValueDate}: The date the transaction is effective (as a Date object).
+#'   \item \code{PayerName}: The name of the counterparty.
+#'   \item \code{PayerIBAN}: The counterparty's IBAN.
+#'   \item \code{TransactionType}: The type of transaction (e.g., Direct Debit, Transfer, Salary).
 #'   \item \code{Purpose}: The purpose of the transaction (e.g., Rent payment, Groceries).
 #'   \item \code{Amount}: The transaction amount (positive for inflows, negative for outflows).
 #'   \item \code{Currency}: The currency of the transaction (e.g., EUR).
@@ -43,12 +43,12 @@ process_csv <- function(file_path) {
     )
   ) |>
     select(
-      Account_IBAN = `IBAN Auftragskonto`,
-      Booking_Date = `Buchungstag`,
-      Value_Date = `Valutadatum`,
-      Payer_Name = `Name Zahlungsbeteiligter`,
-      Payer_IBAN = `IBAN Zahlungsbeteiligter`,
-      Transactions_Type = `Buchungstext`,
+      AccountIBAN = `IBAN Auftragskonto`,
+      BookingDate = `Buchungstag`,
+      ValueDate = `Valutadatum`,
+      PayerName = `Name Zahlungsbeteiligter`,
+      PayerIBAN = `IBAN Zahlungsbeteiligter`,
+      TransactionType = `Buchungstext`,
       Purpose = `Verwendungszweck`,
       Amount = `Betrag`,
       Currency = `Waehrung`

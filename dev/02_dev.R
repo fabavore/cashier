@@ -20,12 +20,12 @@ attachment::att_amend_desc()
 
 ## Add modules ----
 ## Create a module infrastructure in R/
-golem::add_module(name = "dashboard", with_test = TRUE)
+golem::add_module(name = "dashboard", utils = "plots", with_test = TRUE)
 golem::add_module(name = "transactions", fct = "import", utils = "modals")
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
-golem::add_fct("helpers", with_test = TRUE)
+golem::add_fct("net_worth")
 golem::add_utils("helpers", with_test = TRUE)
 
 ## External resources
@@ -48,6 +48,7 @@ usethis::use_test("app")
 ## Vignette ----
 usethis::use_vignette("cashier")
 usethis::use_vignette("import")
+usethis::use_vignette("analysis")
 usethis::use_vignette("plots")
 devtools::build_vignettes()
 
