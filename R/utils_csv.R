@@ -1,3 +1,30 @@
+#' Create Import CSV Modal Dialog
+#'
+#' This function creates a modal dialog for uploading CSV files. The modal includes a file input for selecting
+#' a CSV file and buttons for importing or canceling the operation.
+#'
+#' @param ns A namespace function for module compatibility. This is used to prefix the IDs of the elements in the modal.
+#' @return A `modalDialog` object that can be used in the UI definition.
+#'
+#' @noRd
+create_import_modal <- function(ns) {
+  modalDialog(
+    title = "Import CSV File",
+    size = "s",
+    footer = tagList(
+      modalButton("Cancel"),
+      bs4Dash::actionButton(ns("import"), "Import", status = "primary")
+    ),
+    fluidRow(
+      column(width = 12,
+             fileInput(ns("csv_file"), "Choose CSV File",
+                       accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+      )
+    ),
+    easyClose = TRUE
+  )
+}
+
 #' Process Financial Transactions from CSV File
 #'
 #' @description
@@ -28,18 +55,23 @@
 #' head(transactions)
 #' }
 #'
-#' @importFrom readr read_csv2 cols col_character col_date col_double
+#' @importFrom readr read_delim cols col_character col_date col_double locale
 #' @importFrom dplyr select mutate across where
 #' @importFrom tidyr replace_na
 #' @export
 process_posting_csv <- function(file_path) {
-  transactions <- read_csv2(
+  transactions <- read_delim(
     file_path,
     col_types = cols(
       .default = col_character(),
-      Buchungstag = col_date(format = "%d.%m.%Y"),
-      Valutadatum = col_date(format = "%d.%m.%Y"),
+      Buchungstag = col_date(),
+      Valutadatum = col_date(),
       Betrag = col_double()
+    ),
+    locale = locale(
+      date_format = "%d.%m.%Y",
+      decimal_mark = ",",
+      grouping_mark = "."
     )
   ) |>
     select(
@@ -63,7 +95,15 @@ process_rule_csv <- function(file_path) {
     col_types = cols(
       .default = col_character()
     )
-  )
+  ) |>
+    select(
+      payee_name = `Counterparty Name Regex`,
+      payee_iban = `Counterparty IBAN Regex`,
+      purpose = `Purpose Regex`,
+      category = `Category`,
+      tags = `Tags`
+    ) |>
+    mutate(across(where(is.character), ~ replace_na(.x, "")))
 
   return(rules)
 }

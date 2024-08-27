@@ -8,22 +8,29 @@ License: MIT + file LICENSE
 Imports: 
     bs4Dash,
     config (>= 0.3.2),
+    DBI,
     dplyr,
     DT,
+    gargoyle,
     golem (>= 0.4.1),
     plotly,
+    R6,
     readr,
+    RSQLite,
     shiny (>= 1.9.1),
     tidyr,
     zoo
 Suggests: 
+    devtools,
     knitr,
     rmarkdown,
     spelling,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tidyverse
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2
-VignetteBuilder: knitr

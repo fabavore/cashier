@@ -24,23 +24,18 @@ mod_transactions_ui <- function(id){
 
 #' transactions Server Functions
 #'
+#' @importFrom dplyr select
 #' @noRd
 mod_transactions_server <- function(id, ledger){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    # Display transactions data in a table
-    output$transaction_table <- DT::renderDT({
-      gargoyle::watch("postings")
-      ledger$postings$get_data()
-    })
-
     # Reactive expression to handle file import
     import_data <- reactive({
-      req(input$transaction_file)
+      req(input$csv_file)
 
       # Process the uploaded file
-      new_data <- process_posting_csv(input$transaction_file$datapath)
+      new_data <- process_posting_csv(input$csv_file$datapath)
       new_data
     }) |> bindEvent(input$import)
 
@@ -55,6 +50,22 @@ mod_transactions_server <- function(id, ledger){
       gargoyle::trigger("postings")
       removeModal()
     }) |> bindEvent(import_data())
+
+    # Display transactions data in a table
+    output$transaction_table <- DT::renderDT({
+      gargoyle::watch("postings")
+      ledger$postings$get_data() |>
+        select(
+          `Booking Date` = `booking_date`,
+          `Value Date` = `value_date`,
+          `Counterparty` = `payee_name`,
+          `Purpose` = `purpose`,
+          `Amount` = `amount`,
+          `Currency` = `currency`
+        )
+    },
+    rownames = FALSE
+    )
   })
 }
 

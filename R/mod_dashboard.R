@@ -115,6 +115,7 @@ mod_dashboard_server <- function(id){
     ledger <- Ledger$new("ledger.db")
 
     gargoyle::init("postings")
+    gargoyle::init("rules")
 
     # Call the transactions module server
     mod_transactions_server("transactions_1", ledger)
