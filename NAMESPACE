@@ -2,7 +2,7 @@
 
 export(calculate_net_worth)
 export(plot_net_worth)
-export(process_csv)
+export(process_posting_csv)
 export(run_app)
 import(shiny)
 importFrom(bs4Dash,menuItem)

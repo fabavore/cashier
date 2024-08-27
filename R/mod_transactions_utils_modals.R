@@ -17,7 +17,7 @@ create_import_modal <- function(ns) {
     ),
     fluidRow(
       column(width = 12,
-             fileInput(ns("transactions_file"), "Choose CSV File",
+             fileInput(ns("transaction_file"), "Choose CSV File",
                        accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
       )
     ),

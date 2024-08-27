@@ -105,14 +105,14 @@ mod_dashboard_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    transactions_data <- reactiveVal()
+    transaction_data <- reactiveVal()
 
     # Call the transactions module server
-    mod_transactions_server("transactions_1", transactions_data)
+    mod_transactions_server("transactions_1", transaction_data)
 
     # Generate the Net Worth chart using Plotly
     output$net_worth_plot <- renderPlotly({
-      data <- transactions_data()
+      data <- transaction_data()
       req(nrow(data) > 0)
 
       data |> calculate_net_worth() |> plot_net_worth()
@@ -120,16 +120,16 @@ mod_dashboard_server <- function(id){
 
     # Generate the Cash Flow chart using Plotly
     output$cash_flow_plot <- renderPlotly({
-      data <- transactions_data()
+      data <- transaction_data()
       req(nrow(data) > 0)
 
       cash_flow <- data |>
         mutate(
-          Month = zoo::as.yearmon(BookingDate) |> zoo::as.Date(frac = 1),
-          Type = ifelse(Amount >= 0, "Income", "Expense")
+          Month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 1),
+          Type = ifelse(amount >= 0, "Income", "Expense")
         ) |>
         group_by(Month, Type) |>
-        summarize(Cash_Flow = sum(Amount, na.rm = TRUE), .groups = 'drop') |>
+        summarize(Cash_Flow = sum(amount, na.rm = TRUE), .groups = 'drop') |>
         pivot_wider(names_from = Type, values_from = Cash_Flow, values_fill = list(Cash_Flow = 0))
 
       plot_ly(cash_flow, x = ~Month) |>
@@ -146,16 +146,16 @@ mod_dashboard_server <- function(id){
 
     # Generate the Expenses vs Revenues chart using Plotly
     output$expenses_vs_income_plot <- renderPlotly({
-      data <- transactions_data()
+      data <- transaction_data()
       req(nrow(data) > 0)
 
       cash_flow <- data |>
         mutate(
-          Month = zoo::as.yearmon(BookingDate) |> zoo::as.Date(frac = 1),
-          Type = ifelse(Amount >= 0, "Income", "Expense")
+          Month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 1),
+          Type = ifelse(amount >= 0, "Income", "Expense")
         ) |>
         group_by(Month, Type) |>
-        summarize(Cash_Flow = sum(Amount, na.rm = TRUE), .groups = 'drop') |>
+        summarize(Cash_Flow = sum(amount, na.rm = TRUE), .groups = 'drop') |>
         pivot_wider(names_from = Type, values_from = Cash_Flow, values_fill = list(Cash_Flow = 0))
 
       plotly::plot_ly(cash_flow, x = ~Month)  |>

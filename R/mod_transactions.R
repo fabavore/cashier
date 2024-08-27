@@ -17,7 +17,7 @@ mod_transactions_ui <- function(id){
       width = 12,
       actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload")),
       br(), br(),
-      DT::DTOutput(ns("transactions_table"))
+      DT::DTOutput(ns("transaction_table"))
     )
   )
 }
@@ -25,21 +25,21 @@ mod_transactions_ui <- function(id){
 #' transactions Server Functions
 #'
 #' @noRd
-mod_transactions_server <- function(id, transactions_data){
+mod_transactions_server <- function(id, transaction_data){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
     # Display transactions data in a table
-    output$transactions_table <- DT::renderDT({
-      transactions_data()
+    output$transaction_table <- DT::renderDT({
+      transaction_data()
     })
 
     # Reactive expression to handle file import
     import_data <- reactive({
-      req(input$transactions_file)
+      req(input$transaction_file)
 
       # Process the uploaded file
-      new_data <- process_csv(input$transactions_file$datapath)
+      new_data <- process_posting_csv(input$transaction_file$datapath)
       new_data
     }) |> bindEvent(input$import)
 
@@ -50,7 +50,7 @@ mod_transactions_server <- function(id, transactions_data){
 
     # Update the transactions data when the import button is pressed
     observe({
-      transactions_data(import_data())
+      transaction_data(import_data())
       removeModal()
     }) |> bindEvent(import_data())
   })

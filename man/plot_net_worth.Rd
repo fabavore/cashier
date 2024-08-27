@@ -9,8 +9,8 @@ plot_net_worth(net_worth)
 \arguments{
 \item{net_worth}{A data frame containing the net worth data. The data frame should have at least two columns:
 \itemize{
-  \item \code{Date}: The date of each net worth calculation (as a Date object).
-  \item \code{NetWorth}: The cumulative net worth at each date.
+  \item \code{date}: The date of each net worth calculation (as a Date object).
+  \item \code{net_worth}: The cumulative net worth at each date.
 }}
 }
 \value{
@@ -25,11 +25,8 @@ The function creates an interactive line chart using `plot_ly`, displaying the t
 \examples{
 # Example net worth data
 net_worth <- data.frame(
-  Date = seq.Date(from = as.Date("2024-01-01"), to = as.Date("2024-12-31"), by = "day"),
-  NetWorth = cumsum(rnorm(365, mean = 0, sd = 100))
+  date = seq.Date(from = as.Date("2024-01-01"), to = as.Date("2024-12-31"), by = "day"),
+  net_worth = cumsum(rnorm(365, mean = 0, sd = 100))
 )
-
-# Plot net worth by day and by month
-plot_net_worth_by_day_and_month(net_worth)
 
 }

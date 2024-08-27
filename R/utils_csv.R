@@ -7,15 +7,14 @@
 #'
 #' @return A data frame with the following columns:
 #' \itemize{
-#'   \item \code{AccountIBAN}: The user's IBAN.
-#'   \item \code{BookingDate}: The transaction booking date (as a Date object).
-#'   \item \code{ValueDate}: The date the transaction is effective (as a Date object).
-#'   \item \code{PayerName}: The name of the counterparty.
-#'   \item \code{PayerIBAN}: The counterparty's IBAN.
-#'   \item \code{TransactionType}: The type of transaction (e.g., Direct Debit, Transfer, Salary).
-#'   \item \code{Purpose}: The purpose of the transaction (e.g., Rent payment, Groceries).
-#'   \item \code{Amount}: The transaction amount (positive for inflows, negative for outflows).
-#'   \item \code{Currency}: The currency of the transaction (e.g., EUR).
+#'   \item \code{account_iban}: The user's IBAN.
+#'   \item \code{booking_date}: The transaction booking date (as a Date object).
+#'   \item \code{value_date}: The date the transaction is effective (as a Date object).
+#'   \item \code{payee_name}: The name of the counterparty.
+#'   \item \code{payee_iban}: The counterparty's IBAN.
+#'   \item \code{purpose}: The purpose of the transaction (e.g., Rent payment, Groceries).
+#'   \item \code{amount}: The transaction amount (positive for inflows, negative for outflows).
+#'   \item \code{currency}: The currency of the transaction (e.g., EUR).
 #' }
 #'
 #' @details
@@ -32,7 +31,7 @@
 #' @importFrom readr read_csv2 cols col_character col_date col_double
 #' @importFrom dplyr select
 #' @export
-process_csv <- function(file_path) {
+process_posting_csv <- function(file_path) {
   transactions <- read_csv2(
     file_path,
     col_types = cols(
@@ -43,16 +42,26 @@ process_csv <- function(file_path) {
     )
   ) |>
     select(
-      AccountIBAN = `IBAN Auftragskonto`,
-      BookingDate = `Buchungstag`,
-      ValueDate = `Valutadatum`,
-      PayerName = `Name Zahlungsbeteiligter`,
-      PayerIBAN = `IBAN Zahlungsbeteiligter`,
-      TransactionType = `Buchungstext`,
-      Purpose = `Verwendungszweck`,
-      Amount = `Betrag`,
-      Currency = `Waehrung`
+      account_iban = `IBAN Auftragskonto`,
+      booking_date = `Buchungstag`,
+      value_date = `Valutadatum`,
+      payee_name = `Name Zahlungsbeteiligter`,
+      payee_iban = `IBAN Zahlungsbeteiligter`,
+      purpose = `Verwendungszweck`,
+      amount = `Betrag`,
+      currency = `Waehrung`
     )
 
   return(transactions)
+}
+
+process_rule_csv <- function(file_path) {
+  rules <- read_csv2(
+    file_path,
+    col_types = cols(
+      .default = col_character()
+    )
+  )
+
+  return(rules)
 }

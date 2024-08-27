@@ -21,12 +21,13 @@ attachment::att_amend_desc()
 ## Add modules ----
 ## Create a module infrastructure in R/
 golem::add_module(name = "dashboard", utils = "plots", with_test = TRUE)
-golem::add_module(name = "transactions", fct = "import", utils = "modals")
+golem::add_module(name = "transactions", utils = "modals")
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
 golem::add_fct("net_worth")
-golem::add_utils("helpers", with_test = TRUE)
+golem::add_utils("r6")
+golem::add_utils("csv")
 
 ## External resources
 ## Creates .js and .css files at inst/app/www

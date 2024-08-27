@@ -5,14 +5,14 @@
 #'
 #' @param transactions A data frame containing the transaction data. The data frame should have at least two columns:
 #' \itemize{
-#'   \item \code{BookingDate}: The date of the transaction (as a Date object).
-#'   \item \code{Amount}: The transaction amount (positive for inflows, negative for outflows).
+#'   \item \code{booking_date}: The date of the transaction (as a Date object).
+#'   \item \code{amount}: The transaction amount (positive for inflows, negative for outflows).
 #' }
 #'
 #' @return A data frame with two columns:
 #' \itemize{
-#'   \item \code{Date}: The date of each transaction.
-#'   \item \code{NetWorth}: The cumulative net worth at each transaction date.
+#'   \item \code{date}: The date of each transaction.
+#'   \item \code{net_worth}: The cumulative net worth at each transaction date.
 #' }
 #'
 #' @details
@@ -33,11 +33,11 @@
 #' @export
 calculate_net_worth <- function(transactions) {
   net_worth <- transactions |>
-    arrange(BookingDate) |>
-    group_by(BookingDate) |>
-    summarise(Amount = sum(Amount), .groups = "drop_last") |>
-    mutate(NetWorth = cumsum(Amount)) |>
-    rename(Date = BookingDate)
+    arrange(booking_date) |>
+    group_by(booking_date) |>
+    summarise(amount = sum(amount), .groups = "drop_last") |>
+    mutate(net_worth = cumsum(amount)) |>
+    rename(date = booking_date)
 
   return(net_worth)
 }

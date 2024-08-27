@@ -9,15 +9,15 @@ calculate_net_worth(transactions)
 \arguments{
 \item{transactions}{A data frame containing the transaction data. The data frame should have at least two columns:
 \itemize{
-  \item \code{BookingDate}: The date of the transaction (as a Date object).
-  \item \code{Amount}: The transaction amount (positive for inflows, negative for outflows).
+  \item \code{booking_date}: The date of the transaction (as a Date object).
+  \item \code{amount}: The transaction amount (positive for inflows, negative for outflows).
 }}
 }
 \value{
 A data frame with two columns:
 \itemize{
-  \item \code{Date}: The date of each transaction.
-  \item \code{NetWorth}: The cumulative net worth at each transaction date.
+  \item \code{date}: The date of each transaction.
+  \item \code{net_worth}: The cumulative net worth at each transaction date.
 }
 }
 \description{
