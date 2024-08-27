@@ -29,7 +29,8 @@
 #' }
 #'
 #' @importFrom readr read_csv2 cols col_character col_date col_double
-#' @importFrom dplyr select
+#' @importFrom dplyr select mutate across where
+#' @importFrom tidyr replace_na
 #' @export
 process_posting_csv <- function(file_path) {
   transactions <- read_csv2(
@@ -50,7 +51,8 @@ process_posting_csv <- function(file_path) {
       purpose = `Verwendungszweck`,
       amount = `Betrag`,
       currency = `Waehrung`
-    )
+    ) |>
+    mutate(across(where(is.character), ~ replace_na(.x, "")))
 
   return(transactions)
 }

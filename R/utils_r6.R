@@ -5,7 +5,23 @@ FinanceData <- R6::R6Class(
     data = NULL,
 
     initialize = function(src, from) {
-      self$data <- tbl(src, from)
+      self$data <- dplyr::tbl(src, from)
+    },
+
+    rows_append = function(y, ...) {
+      y <- y |>
+        dplyr::mutate(dplyr::across(dplyr::ends_with("date"), as.character))
+      self$data |>
+        dplyr::rows_append(y, ..., copy = TRUE, in_place = TRUE)
+    },
+
+    get_data = function() {
+      self$data |>
+        dplyr::collect() |>
+        dplyr::mutate(dplyr::across(
+          dplyr::ends_with("date"),
+          ~ as.Date(.x, format = "%Y-%m-%d")
+        ))
     }
   )
 )
@@ -21,10 +37,10 @@ Ledger <- R6::R6Class(
     rules = NULL,
 
     initialize = function(db_path = "ledger.db") {
-      self$con <- dbConnect(SQLite(), db_path)
+      self$con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
 
       # Create the posting table if it doesn't exist
-      dbExecute(self$con, "
+      DBI::dbExecute(self$con, "
         CREATE TABLE IF NOT EXISTS posting (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           account_iban TEXT,
@@ -40,7 +56,7 @@ Ledger <- R6::R6Class(
       ")
 
       # Create the rule table if it doesn't exist
-      dbExecute(self$con, "
+      DBI::dbExecute(self$con, "
         CREATE TABLE IF NOT EXISTS rule (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           payee_name TEXT,
@@ -58,7 +74,7 @@ Ledger <- R6::R6Class(
     },
 
     finalize = function() {
-      dbDisconnect(self$con)
+      DBI::dbDisconnect(self$con)
     }
   )
 )

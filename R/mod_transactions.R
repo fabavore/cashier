@@ -25,13 +25,14 @@ mod_transactions_ui <- function(id){
 #' transactions Server Functions
 #'
 #' @noRd
-mod_transactions_server <- function(id, transaction_data){
+mod_transactions_server <- function(id, ledger){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
     # Display transactions data in a table
     output$transaction_table <- DT::renderDT({
-      transaction_data()
+      gargoyle::watch("postings")
+      ledger$postings$get_data()
     })
 
     # Reactive expression to handle file import
@@ -50,7 +51,8 @@ mod_transactions_server <- function(id, transaction_data){
 
     # Update the transactions data when the import button is pressed
     observe({
-      transaction_data(import_data())
+      ledger$postings$rows_append(import_data())
+      gargoyle::trigger("postings")
       removeModal()
     }) |> bindEvent(import_data())
   })

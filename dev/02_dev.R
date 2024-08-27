@@ -22,6 +22,7 @@ attachment::att_amend_desc()
 ## Create a module infrastructure in R/
 golem::add_module(name = "dashboard", utils = "plots", with_test = TRUE)
 golem::add_module(name = "transactions", utils = "modals")
+golem::add_module(name = "rules", utils = "modals")
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

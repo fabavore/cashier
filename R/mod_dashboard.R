@@ -19,6 +19,7 @@ mod_dashboard_ui <- function(id){
         sidebarMenu(
           menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
           menuItem("Transactions", tabName = "transactions", icon = icon("money-bill-transfer"), selected = T),
+          menuItem("Automation", tabName = "rules", icon = icon("microchip")),
           menuItem("Expenses", tabName = "expenses", icon = icon("file-invoice-dollar")),
           menuItem("Revenues", tabName = "revenues", icon = icon("money-bill-alt"))
         )
@@ -60,6 +61,12 @@ mod_dashboard_ui <- function(id){
 
             # Include the transactions module UI here
             mod_transactions_ui(ns("transactions_1"))
+          ),
+          tabItem(
+            tabName = "rules",
+
+            # Include the rules module UI
+            mod_rules_ui(ns("rules_1"))
           ),
           tabItem(
             tabName = "expenses",
@@ -105,14 +112,20 @@ mod_dashboard_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    transaction_data <- reactiveVal()
+    ledger <- Ledger$new("ledger.db")
+
+    gargoyle::init("postings")
 
     # Call the transactions module server
-    mod_transactions_server("transactions_1", transaction_data)
+    mod_transactions_server("transactions_1", ledger)
+
+    # Call the rules module server
+    mod_rules_server("rules_1", ledger)
 
     # Generate the Net Worth chart using Plotly
     output$net_worth_plot <- renderPlotly({
-      data <- transaction_data()
+      gargoyle::watch("postings")
+      data <- ledger$postings$get_data()
       req(nrow(data) > 0)
 
       data |> calculate_net_worth() |> plot_net_worth()
@@ -120,7 +133,8 @@ mod_dashboard_server <- function(id){
 
     # Generate the Cash Flow chart using Plotly
     output$cash_flow_plot <- renderPlotly({
-      data <- transaction_data()
+      gargoyle::watch("postings")
+      data <- ledger$postings$get_data()
       req(nrow(data) > 0)
 
       cash_flow <- data |>
@@ -146,7 +160,8 @@ mod_dashboard_server <- function(id){
 
     # Generate the Expenses vs Revenues chart using Plotly
     output$expenses_vs_income_plot <- renderPlotly({
-      data <- transaction_data()
+      gargoyle::watch("postings")
+      data <- ledger$postings$get_data()
       req(nrow(data) > 0)
 
       cash_flow <- data |>
