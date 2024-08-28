@@ -118,7 +118,9 @@ mod_dashboard_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    ledger <- Ledger$new("ledger.db")
+    Sys.setenv("GOLEM_CONFIG_ACTIVE" = "dev")
+
+    ledger <- Ledger$new(db_path = get_golem_config("db_path"))
 
     gargoyle::init("accounts")
     gargoyle::init("postings")

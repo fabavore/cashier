@@ -15,9 +15,7 @@ mod_accounts_ui <- function(id){
     useShinyjs(),
     bs4Card(
       title = "Accounts",
-      actionButton(ns("add"), "Add account", icon = icon("add")),
-      disabled(actionButton(ns("edit"), "Edit account", icon = icon("edit"))),
-      disabled(actionButton(ns("delete"), "Delete account", icon = icon("trash"))),
+      disabled(actionButton(ns("edit"), "Edit", icon = icon("edit"))),
       br(), br(),
       DT::DTOutput(ns("account_table")),
       status = "primary",
@@ -34,44 +32,41 @@ mod_accounts_server <- function(id, ledger){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    observe({
-      toggleState("edit", condition = not_null(input$account_table_rows_selected))
-      toggleState("delete", condition = not_null(input$account_table_rows_selected))
+    data <- reactive({
+      gargoyle::watch("accounts")
+      ledger$accounts$get_data()
     })
 
-    # Add account --------------------------------------------------------------
     observe({
-      showModal(create_add_account_modal(ns))
-    }) |> bindEvent(input$add)
+      toggleState("edit", condition = not_null(input$account_table_rows_selected))
+    })
 
     observe({
-      removeModal()
-    }) |> bindEvent(input$confirm_add)
-
-    # Edit account -------------------------------------------------------------
-    observe({
-      showModal(create_edit_account_modal(ns))
+      showModal(create_edit_account_modal(
+        ns,
+        values = data() |> slice(input$account_table_rows_selected)
+      ))
     }) |> bindEvent(input$edit)
 
     observe({
+      ledger$accounts$rows_update(data.frame(
+        `id` = data() |> slice(input$account_table_rows_selected) |> pull(`id`),
+        account_iban = input$account_iban,
+        account_name = input$account_name,
+        opening_date = input$opening_date,
+        opening_amount = input$opening_amount,
+        currency = input$currency
+      ))
+
+      gargoyle::trigger("accounts")
       removeModal()
     }) |> bindEvent(input$confirm_edit)
 
-    # Delete account -----------------------------------------------------------
-    observe({
-      showModal(create_delete_account_modal(ns))
-    }) |> bindEvent(input$delete)
-
-    observe({
-      removeModal()
-    }) |> bindEvent(input$confirm_delete)
-
     output$account_table <- DT::renderDT({
-      gargoyle::watch("accounts")
-      ledger$accounts$get_data() |>
+      data() |>
         select(
-          `Account Name` = `account_name`,
           `Account IBAN` = `account_iban`,
+          `Account Name` = `account_name`,
           `Opening Date` = `opening_date`,
           `Opening Amount` = `opening_amount`,
           `Currency` = `currency`

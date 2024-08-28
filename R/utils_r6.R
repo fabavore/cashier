@@ -15,6 +15,13 @@ FinanceData <- R6::R6Class(
         dplyr::rows_append(y, ..., copy = TRUE, in_place = TRUE)
     },
 
+    rows_update = function(y, ...) {
+      y <- y |>
+        dplyr::mutate(dplyr::across(dplyr::ends_with("date"), as.character))
+      self$data |>
+        dplyr::rows_update(y, by = "id", ..., unmatched = "ignore", copy = TRUE, in_place = TRUE, )
+    },
+
     get_data = function() {
       self$data |>
         dplyr::collect() |>
@@ -45,8 +52,8 @@ Ledger <- R6::R6Class(
       DBI::dbExecute(self$con, "
         CREATE TABLE IF NOT EXISTS account (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          account_name TEXT,
           account_iban TEXT,
+          account_name TEXT,
           opening_date TEXT,
           opening_amount REAL,
           currency TEXT,
