@@ -21,6 +21,7 @@ attachment::att_amend_desc()
 ## Add modules ----
 ## Create a module infrastructure in R/
 golem::add_module("dashboard", utils = "plots", with_test = TRUE)
+golem::add_module("accounts", utils = "modals")
 golem::add_module("transactions", utils = "modals")
 golem::add_module("rules")
 

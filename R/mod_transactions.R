@@ -51,6 +51,18 @@ mod_transactions_server <- function(id, ledger){
       new_data <- process_posting_csv(input$csv_file$datapath)
       ledger$postings$rows_append(new_data)
 
+      # Update accounts
+      new_iban <- new_data |> pull(account_iban) |> unique()
+
+      ledger$accounts$rows_append(data.frame(
+        account_iban = new_iban,
+        account_name = "",
+        opening_date = as.Date("2020-01-01"),
+        opening_amount = 0,
+        currency = "EUR"
+      ))
+
+      gargoyle::trigger("accounts")
       gargoyle::trigger("postings")
       removeModal()
     }) |> bindEvent(input$import)

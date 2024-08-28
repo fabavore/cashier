@@ -32,12 +32,27 @@ Ledger <- R6::R6Class(
   public = list(
     con = NULL,
 
+    accounts = NULL,
+
     postings = NULL,
 
     rules = NULL,
 
     initialize = function(db_path = "ledger.db") {
       self$con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
+
+      # Create the account table if it doesn't exist
+      DBI::dbExecute(self$con, "
+        CREATE TABLE IF NOT EXISTS account (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          account_name TEXT,
+          account_iban TEXT,
+          opening_date TEXT,
+          opening_amount REAL,
+          currency TEXT,
+          UNIQUE(account_iban) ON CONFLICT IGNORE
+        )
+      ")
 
       # Create the posting table if it doesn't exist
       DBI::dbExecute(self$con, "
@@ -63,9 +78,11 @@ Ledger <- R6::R6Class(
           description TEXT,
           category TEXT,
           tags TEXT,
-          UNIQUE(payee_name, description, category, tags) ON CONFLICT IGNORE
+          UNIQUE(payee_name, description) ON CONFLICT IGNORE
         )
       ")
+
+      self$accounts <- FinanceData$new(self$con, from = "account")
 
       self$postings <- FinanceData$new(self$con, from = "posting")
 

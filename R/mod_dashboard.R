@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bs4Dash sidebarMenu menuItem tabItems tabItem
+#' @importFrom bs4Dash sidebarMenu menuItem tabItems tabItem bs4Card
 mod_dashboard_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -18,6 +18,7 @@ mod_dashboard_ui <- function(id){
       bs4Dash::dashboardSidebar(
         sidebarMenu(
           menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
+          menuItem("Accounts", tabName = "accounts", icon = icon("bank")),
           menuItem("Transactions", tabName = "transactions", icon = icon("money-bill-transfer"), selected = T),
           menuItem("Automation", tabName = "rules", icon = icon("microchip")),
           menuItem("Expenses", tabName = "expenses", icon = icon("file-invoice-dollar")),
@@ -57,6 +58,10 @@ mod_dashboard_ui <- function(id){
             )
           ),
           tabItem(
+            tabName = "accounts",
+            mod_accounts_ui(ns("accounts_1"))
+          ),
+          tabItem(
             tabName = "transactions",
 
             # Include the transactions module UI here
@@ -85,7 +90,8 @@ mod_dashboard_ui <- function(id){
           bs4Dash::controlbarItem(
             title = "Settings",
             icon = icon("cogs"),
-            p("This is the settings section.")
+              tableOutput(ns("tbl"))
+
           ),
           bs4Dash::controlbarItem(
             title = "Help",
@@ -114,8 +120,11 @@ mod_dashboard_server <- function(id){
 
     ledger <- Ledger$new("ledger.db")
 
+    gargoyle::init("accounts")
     gargoyle::init("postings")
     gargoyle::init("rules")
+
+    mod_accounts_server("accounts_1", ledger)
 
     # Call the transactions module server
     mod_transactions_server("transactions_1", ledger)

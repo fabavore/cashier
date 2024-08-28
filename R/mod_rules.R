@@ -11,7 +11,7 @@ mod_rules_ui <- function(id){
   ns <- NS(id)
   tagList(
     bs4Dash::bs4Card(
-      title = "Transactions",
+      title = "Matching Rules",
       status = "primary",
       solidHeader = TRUE,
       width = 12,
