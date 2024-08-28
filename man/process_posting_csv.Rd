@@ -17,7 +17,7 @@ A data frame with the following columns:
   \item \code{value_date}: The date the transaction is effective (as a Date object).
   \item \code{payee_name}: The name of the counterparty.
   \item \code{payee_iban}: The counterparty's IBAN.
-  \item \code{purpose}: The purpose of the transaction (e.g., Rent payment, Groceries).
+  \item \code{description}: The purpose of the transaction (e.g., Rent payment, Groceries).
   \item \code{amount}: The transaction amount (positive for inflows, negative for outflows).
   \item \code{currency}: The currency of the transaction (e.g., EUR).
 }

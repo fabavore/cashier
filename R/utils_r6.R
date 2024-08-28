@@ -48,10 +48,10 @@ Ledger <- R6::R6Class(
           value_date TEXT,
           payee_name TEXT,
           payee_iban TEXT,
-          purpose TEXT,
+          description TEXT,
           amount REAL,
           currency TEXT,
-          UNIQUE(account_iban, booking_date, value_date, payee_name, payee_iban, purpose, amount, currency) ON CONFLICT IGNORE
+          UNIQUE(account_iban, booking_date, value_date, payee_name, payee_iban, description, amount, currency) ON CONFLICT IGNORE
         )
       ")
 
@@ -60,11 +60,10 @@ Ledger <- R6::R6Class(
         CREATE TABLE IF NOT EXISTS rule (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           payee_name TEXT,
-          payee_iban TEXT,
-          purpose TEXT,
+          description TEXT,
           category TEXT,
           tags TEXT,
-          UNIQUE(payee_name, payee_iban, purpose, category, tags) ON CONFLICT IGNORE
+          UNIQUE(payee_name, description, category, tags) ON CONFLICT IGNORE
         )
       ")
 

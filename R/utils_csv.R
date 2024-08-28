@@ -39,7 +39,7 @@ create_import_modal <- function(ns) {
 #'   \item \code{value_date}: The date the transaction is effective (as a Date object).
 #'   \item \code{payee_name}: The name of the counterparty.
 #'   \item \code{payee_iban}: The counterparty's IBAN.
-#'   \item \code{purpose}: The purpose of the transaction (e.g., Rent payment, Groceries).
+#'   \item \code{description}: The purpose of the transaction (e.g., Rent payment, Groceries).
 #'   \item \code{amount}: The transaction amount (positive for inflows, negative for outflows).
 #'   \item \code{currency}: The currency of the transaction (e.g., EUR).
 #' }
@@ -80,7 +80,7 @@ process_posting_csv <- function(file_path) {
       value_date = `Valutadatum`,
       payee_name = `Name Zahlungsbeteiligter`,
       payee_iban = `IBAN Zahlungsbeteiligter`,
-      purpose = `Verwendungszweck`,
+      description = `Verwendungszweck`,
       amount = `Betrag`,
       currency = `Waehrung`
     ) |>
@@ -97,9 +97,8 @@ process_rule_csv <- function(file_path) {
     )
   ) |>
     select(
-      payee_name = `Counterparty Name Regex`,
-      payee_iban = `Counterparty IBAN Regex`,
-      purpose = `Purpose Regex`,
+      payee_name = `Counterparty Regex`,
+      description = `Description Regex`,
       category = `Category`,
       tags = `Tags`
     ) |>

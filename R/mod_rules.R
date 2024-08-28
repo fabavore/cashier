@@ -55,9 +55,8 @@ mod_rules_server <- function(id, ledger){
       gargoyle::watch("rules")
       ledger$rules$get_data() |>
         select(
-          `Counterparty Name Regex` = `payee_name`,
-          `Counterparty IBAN Regex` = `payee_iban`,
-          `Purpose Regex` = `purpose`,
+          `Counterparty Regex` = `payee_name`,
+          `Description Regex` = `description`,
           `Category` = `category`,
           `Tags` = `tags`
         )
