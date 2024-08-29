@@ -34,8 +34,10 @@ mod_transactions_server <- function(id, ledger){
     ns <- session$ns
 
     data <- reactive({
+      gargoyle::watch("accounts")
       gargoyle::watch("postings")
-      ledger$postings$get_data()
+      gargoyle::watch("rules")
+      ledger$get_transactions()
     })
 
     # Open the import modal when the "Import CSV" button is clicked
@@ -101,11 +103,14 @@ mod_transactions_server <- function(id, ledger){
     output$transaction_table <- DT::renderDT({
       data() |>
         select(
+          `Account` = `account_name`,
           `Date` = `booking_date`,
           `Counterparty` = `payee_name`,
           `Description` = `description`,
           `Amount` = `amount`,
-          `Currency` = `currency`
+          `Currency` = `currency`,
+          `Category` = `category`,
+          `Tags` = `tags`
         )
     },
     rownames = FALSE,

@@ -62,6 +62,7 @@ create_import_modal <- function(ns) {
 process_posting_csv <- function(file_path) {
   transactions <- read_delim(
     file_path,
+    delim = ";",
     col_types = cols(
       .default = col_character(),
       Buchungstag = col_date(),

@@ -30,6 +30,7 @@ golem::add_module("rules", utils = "modals")
 golem::add_fct("net_worth")
 golem::add_utils("r6")
 golem::add_utils("csv")
+golem::add_utils("helpers")
 
 ## External resources
 ## Creates .js and .css files at inst/app/www

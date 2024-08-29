@@ -96,6 +96,44 @@ Ledger <- R6::R6Class(
       self$rules <- FinanceData$new(self$con, from = "rule")
     },
 
+    #' @importFrom dplyr mutate across ends_with left_join coalesce bind_rows
+    #' if_else collect transmute
+    get_transactions = function() {
+      opening_transactions <- self$accounts$data |>
+        transmute(
+          account_iban, account_name,
+          booking_date = opening_date,
+          value_date = opening_date,
+          amount = opening_amount,
+          currency,
+          description = "Opening",
+          category = "Equity"
+        ) |>
+        collect() |>
+        mutate(across(ends_with("date"), ~ as.Date(.x, format = "%Y-%m-%d")))
+
+      transactions <- self$postings$data |>
+        left_join(
+          self$accounts$data |> select(account_iban, account_name),
+          by = "account_iban"
+        ) |>
+        left_like_join(
+          self$rules$data,
+          by = c("payee_name", "description"), suffix = c("", "_rule")
+        ) |>
+        mutate(
+          category = coalesce(
+            category,
+            if_else(amount > 0, "Income: Unknown", "Expenses: Unknown")
+          )
+        ) |>
+        collect() |>
+        mutate(across(ends_with("date"), ~ as.Date(.x, format = "%Y-%m-%d"))) |>
+        bind_rows(opening_transactions)
+
+      return(transactions)
+    },
+
     finalize = function() {
       DBI::dbDisconnect(self$con)
     }

@@ -134,10 +134,16 @@ mod_dashboard_server <- function(id){
     # Call the rules module server
     mod_rules_server("rules_1", ledger)
 
+    transactions <- reactive({
+      gargoyle::watch("accounts")
+      gargoyle::watch("postings")
+      gargoyle::watch("rules")
+      ledger$get_transactions()
+    })
+
     # Generate the Net Worth chart using Plotly
     output$net_worth_plot <- renderPlotly({
-      gargoyle::watch("postings")
-      data <- ledger$postings$get_data()
+      data <- transactions()
       req(nrow(data) > 0)
 
       data |> calculate_net_worth() |> plot_net_worth()
