@@ -23,7 +23,7 @@ attachment::att_amend_desc()
 golem::add_module("dashboard", utils = "plots", with_test = TRUE)
 golem::add_module("accounts", utils = "modals")
 golem::add_module("transactions", utils = "modals")
-golem::add_module("rules")
+golem::add_module("rules", utils = "modals")
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

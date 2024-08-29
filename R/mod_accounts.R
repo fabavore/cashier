@@ -72,6 +72,7 @@ mod_accounts_server <- function(id, ledger){
           `Currency` = `currency`
         )
     },
+    selection = "single",
     rownames = FALSE)
   })
 }

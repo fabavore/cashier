@@ -12,22 +12,63 @@ mod_rules_ui <- function(id){
   tagList(
     bs4Dash::bs4Card(
       title = "Matching Rules",
+      actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload")),
+      disabled(actionButton(ns("edit"), "Edit", icon = icon("edit"))),
+      br(), br(),
+      DT::DTOutput(ns("rule_table")),
       status = "primary",
       solidHeader = TRUE,
-      width = 12,
-      actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload")),
-      br(), br(),
-      DT::DTOutput(ns("rule_table"))
+      width = 12
     )
   )
 }
 
 #' rules Server Functions
 #'
+#' @importFrom dplyr slice pull
+#' @importFrom tidyr separate_longer_delim
 #' @noRd
 mod_rules_server <- function(id, ledger){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
+    data <- reactive({
+      gargoyle::watch("rules")
+      ledger$rules$get_data()
+    })
+
+    observe({
+      toggleState("edit", condition = not_null(input$rule_table_rows_selected))
+    })
+
+    observe({
+      values <- data() |> slice(input$rule_table_rows_selected)
+
+      showModal(create_edit_rule_modal(ns, values))
+      updateSelectizeInput(
+        session, "category",
+        choices = data() |> pull(category) |> unique(),
+        selected = values |> pull(category)
+      )
+      updateSelectizeInput(
+        session, "tags",
+        choices = data() |> separate_longer_delim(tags, ", ") |> pull(tags) |> unique(),
+        selected = values |> separate_longer_delim(tags, ", ") |> pull(tags)
+      )
+    }) |> bindEvent(input$edit)
+
+    observe({
+      ledger$rules$rows_update(data.frame(
+        `id` = data() |> slice(input$rule_table_rows_selected) |> pull(`id`),
+        payee_name = input$payee_name,
+        description = input$description,
+        category = input$category,
+        tags = input$tags |> paste(collapse = ", ")
+      ))
+
+      gargoyle::trigger("rules")
+      removeModal()
+    }) |> bindEvent(input$confirm_edit)
 
     # Reactive expression to handle file import
     import_data <- reactive({
@@ -52,8 +93,7 @@ mod_rules_server <- function(id, ledger){
 
     # Display rules data in a table
     output$rule_table <- DT::renderDT({
-      gargoyle::watch("rules")
-      ledger$rules$get_data() |>
+      data() |>
         select(
           `Counterparty Regex` = `payee_name`,
           `Description Regex` = `description`,
@@ -61,6 +101,7 @@ mod_rules_server <- function(id, ledger){
           `Tags` = `tags`
         )
     },
+    select = "single",
     rownames = FALSE)
   })
 }
