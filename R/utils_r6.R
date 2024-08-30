@@ -52,8 +52,8 @@ Ledger <- R6::R6Class(
       DBI::dbExecute(self$con, "
         CREATE TABLE IF NOT EXISTS account (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          account_iban TEXT,
           account_name TEXT,
+          account_iban TEXT,
           opening_date TEXT,
           opening_amount REAL,
           currency TEXT,
@@ -65,15 +65,17 @@ Ledger <- R6::R6Class(
       DBI::dbExecute(self$con, "
         CREATE TABLE IF NOT EXISTS posting (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          account_iban TEXT,
+          account_id INTEGER,
           booking_date TEXT,
           value_date TEXT,
           payee_name TEXT,
           payee_iban TEXT,
           description TEXT,
           amount REAL,
+          balance REAL,
           currency TEXT,
-          UNIQUE(account_iban, booking_date, value_date, payee_name, payee_iban, description, amount, currency) ON CONFLICT IGNORE
+          FOREIGN KEY (account_id) REFERENCES account(id),
+          UNIQUE(account_id, booking_date, value_date, payee_name, payee_iban, description, amount, currency) ON CONFLICT IGNORE
         )
       ")
 
@@ -99,23 +101,10 @@ Ledger <- R6::R6Class(
     #' @importFrom dplyr mutate across ends_with left_join coalesce bind_rows
     #' if_else collect transmute
     get_transactions = function() {
-      opening_transactions <- self$accounts$data |>
-        transmute(
-          account_iban, account_name,
-          booking_date = opening_date,
-          value_date = opening_date,
-          amount = opening_amount,
-          currency,
-          description = "Opening",
-          category = "Equity"
-        ) |>
-        collect() |>
-        mutate(across(ends_with("date"), ~ as.Date(.x, format = "%Y-%m-%d")))
-
       transactions <- self$postings$data |>
         left_join(
-          self$accounts$data |> select(account_iban, account_name),
-          by = "account_iban"
+          self$accounts$data |> select(id, account_name),
+          by = c("account_id" = "id")
         ) |>
         left_like_join(
           self$rules$data,
@@ -128,8 +117,7 @@ Ledger <- R6::R6Class(
           )
         ) |>
         collect() |>
-        mutate(across(ends_with("date"), ~ as.Date(.x, format = "%Y-%m-%d"))) |>
-        bind_rows(opening_transactions)
+        mutate(across(ends_with("date"), ~ as.Date(.x, format = "%Y-%m-%d")))
 
       return(transactions)
     },

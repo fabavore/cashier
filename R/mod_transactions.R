@@ -28,17 +28,35 @@ mod_transactions_ui <- function(id){
 #' transactions Server Functions
 #'
 #' @importFrom dplyr select slice pull
+#' @importFrom DT renderDT
 #' @noRd
 mod_transactions_server <- function(id, ledger){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
     data <- reactive({
-      gargoyle::watch("accounts")
       gargoyle::watch("postings")
       gargoyle::watch("rules")
       ledger$get_transactions()
     })
+
+    # Display transactions data in a table
+    output$transaction_table <- renderDT({
+      data() |>
+        select(
+          `Account` = `account_name`,
+          `Date` = `booking_date`,
+          `Counterparty` = `payee_name`,
+          `Description` = `description`,
+          `Amount` = `amount`,
+          `Currency` = `currency`,
+          `Category` = `category`,
+          `Tags` = `tags`
+        )
+    },
+    rownames = FALSE,
+    selection = "single"
+    )
 
     # Open the import modal when the "Import CSV" button is clicked
     observe({
@@ -49,20 +67,9 @@ mod_transactions_server <- function(id, ledger){
     observe({
       req(input$csv_file)
 
-      # Process the uploaded file
-      new_data <- process_posting_csv(input$csv_file$datapath)
-      ledger$postings$rows_append(new_data)
-
-      # Update accounts
-      new_iban <- new_data |> pull(account_iban) |> unique()
-
-      ledger$accounts$rows_append(data.frame(
-        account_iban = new_iban,
-        account_name = "",
-        opening_date = as.Date("2020-01-01"),
-        opening_amount = 0,
-        currency = "EUR"
-      ))
+      input$csv_file$datapath |>
+        process_posting_csv() |>
+        import_postings(ledger)
 
       gargoyle::trigger("accounts")
       gargoyle::trigger("postings")
@@ -98,24 +105,6 @@ mod_transactions_server <- function(id, ledger){
       ledger$rules$rows_append(new_rule)
       removeModal()
     }) |> bindEvent(input$create_rule)
-
-    # Display transactions data in a table
-    output$transaction_table <- DT::renderDT({
-      data() |>
-        select(
-          `Account` = `account_name`,
-          `Date` = `booking_date`,
-          `Counterparty` = `payee_name`,
-          `Description` = `description`,
-          `Amount` = `amount`,
-          `Currency` = `currency`,
-          `Category` = `category`,
-          `Tags` = `tags`
-        )
-    },
-    rownames = FALSE,
-    selection = "single"
-    )
   })
 }
 

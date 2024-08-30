@@ -8,16 +8,13 @@
 #'
 #' @importFrom shiny NS tagList
 #' @importFrom bs4Dash bs4Card
-#' @importFrom shinyjs useShinyjs disabled toggleState
+#' @importFrom DT DTOutput
 mod_accounts_ui <- function(id){
   ns <- NS(id)
   tagList(
-    useShinyjs(),
     bs4Card(
       title = "Accounts",
-      disabled(actionButton(ns("edit"), "Edit", icon = icon("edit"))),
-      br(), br(),
-      DT::DTOutput(ns("account_table")),
+      DTOutput(ns("account_table")),
       status = "primary",
       solidHeader = TRUE,
       width = 12
@@ -28,51 +25,24 @@ mod_accounts_ui <- function(id){
 #' accounts Server Functions
 #'
 #' @noRd
+#'
+#' @importFrom DT renderDT
+#' @importFrom dplyr select
 mod_accounts_server <- function(id, ledger){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    data <- reactive({
+    output$account_table <- renderDT({
       gargoyle::watch("accounts")
-      ledger$accounts$get_data()
-    })
-
-    observe({
-      toggleState("edit", condition = not_null(input$account_table_rows_selected))
-    })
-
-    observe({
-      showModal(create_edit_account_modal(
-        ns,
-        values = data() |> slice(input$account_table_rows_selected)
-      ))
-    }) |> bindEvent(input$edit)
-
-    observe({
-      ledger$accounts$rows_update(data.frame(
-        `id` = data() |> slice(input$account_table_rows_selected) |> pull(`id`),
-        account_iban = input$account_iban,
-        account_name = input$account_name,
-        opening_date = input$opening_date,
-        opening_amount = input$opening_amount,
-        currency = input$currency
-      ))
-
-      gargoyle::trigger("accounts")
-      removeModal()
-    }) |> bindEvent(input$confirm_edit)
-
-    output$account_table <- DT::renderDT({
-      data() |>
+      ledger$accounts$get_data() |>
         select(
-          `Account IBAN` = `account_iban`,
           `Account Name` = `account_name`,
+          `Account IBAN` = `account_iban`,
           `Opening Date` = `opening_date`,
           `Opening Amount` = `opening_amount`,
           `Currency` = `currency`
         )
     },
-    selection = "single",
     rownames = FALSE)
   })
 }

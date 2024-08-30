@@ -2,38 +2,29 @@
 % Please edit documentation in R/utils_csv.R
 \name{process_posting_csv}
 \alias{process_posting_csv}
-\title{Process Financial Transactions from CSV File}
+\title{Process Posting CSV File}
 \usage{
 process_posting_csv(file_path)
 }
 \arguments{
-\item{file_path}{A string specifying the file path to the CSV file containing the transaction data.}
+\item{file_path}{A string representing the path to the CSV file.}
 }
 \value{
-A data frame with the following columns:
-\itemize{
-  \item \code{account_iban}: The user's IBAN.
-  \item \code{booking_date}: The transaction booking date (as a Date object).
-  \item \code{value_date}: The date the transaction is effective (as a Date object).
-  \item \code{payee_name}: The name of the counterparty.
-  \item \code{payee_iban}: The counterparty's IBAN.
-  \item \code{description}: The purpose of the transaction (e.g., Rent payment, Groceries).
-  \item \code{amount}: The transaction amount (positive for inflows, negative for outflows).
-  \item \code{currency}: The currency of the transaction (e.g., EUR).
-}
+A tibble containing the processed data from the CSV file.
 }
 \description{
-This function reads financial transaction data from a CSV file, processes it, and returns a clean data frame. The CSV file is expected to use `;` as a separator, `,` as a decimal mark, and dates in `dd.mm.yyyy` format. The function renames columns to shorter, intuitive names, and converts dates and amounts into appropriate formats.
+Reads a CSV file containing financial postings and processes it into a data frame.
+The function expects specific column names and formats.
 }
 \details{
-The function automatically handles locale-specific settings, such as decimal marks and date formats, using the `readr` and `dplyr` packages. It expects specific columns in the CSV file and will only import those relevant to transaction processing.
+This function reads a CSV file with a semicolon delimiter (`;`), a decimal mark
+of comma (`,`), and date format `"%d.%m.%Y"`. The columns `Buchungstag` and
+`Valutadatum` are parsed as dates, while `Betrag` and `Saldo nach Buchung`
+are parsed as numeric values. Other columns are treated as characters by default.
 }
 \examples{
 \dontrun{
-# Assuming you have a CSV file named "transactions.csv"
-file_path <- "path/to/transactions.csv"
-transactions <- process_csv(file_path)
-head(transactions)
+file_path <- "path/to/your/csvfile.csv"
+postings <- process_posting_csv(file_path)
 }
-
 }
