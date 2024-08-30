@@ -67,9 +67,7 @@ mod_transactions_server <- function(id, ledger){
     observe({
       req(input$csv_file)
 
-      input$csv_file$datapath |>
-        process_posting_csv() |>
-        import_postings(ledger)
+      ledger$import_postings(process_posting_csv(input$csv_file$datapath))
 
       gargoyle::trigger("accounts")
       gargoyle::trigger("postings")

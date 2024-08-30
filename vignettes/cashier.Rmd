@@ -76,12 +76,16 @@ head(postings)
 ```
 
 ```{r}
-postings <- postings |> mutate(across(ends_with("date"), as.character))
-ledger$postings$data |> rows_append(postings |> slice_head(n = 10), copy = TRUE, in_place = TRUE)
+ledger$import_postings(postings)
 ledger$postings$data
-ledger$postings$data |> rows_append(postings |> slice_head(n = 4), copy = TRUE, in_place = TRUE)
+ledger$get_transactions()
+ledger$import_postings(postings)
 ledger$postings$data
-ledger$postings$data |> rows_append(postings, copy = TRUE, in_place = TRUE)
-ledger$postings$data
+ledger$get_transactions()
 ```
 
+```{r}
+ledger$con |> DBI::dbExecute("DROP TABLE account")
+ledger$con |> DBI::dbExecute("DROP TABLE posting")
+ledger$con |> DBI::dbExecute("DROP TABLE rule")
+```
