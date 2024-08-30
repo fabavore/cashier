@@ -19,7 +19,7 @@ mod_dashboard_ui <- function(id){
         sidebarMenu(
           menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
           menuItem("Accounts", tabName = "accounts", icon = icon("bank")),
-          menuItem("Transactions", tabName = "transactions", icon = icon("money-bill-transfer"), selected = T),
+          menuItem("Transactions", tabName = "transactions", icon = icon("money-bill-transfer")),
           menuItem("Automation", tabName = "rules", icon = icon("microchip")),
           menuItem("Expenses", tabName = "expenses", icon = icon("file-invoice-dollar")),
           menuItem("Revenues", tabName = "revenues", icon = icon("money-bill-alt"))
@@ -135,7 +135,6 @@ mod_dashboard_server <- function(id){
     mod_rules_server("rules_1", ledger)
 
     transactions <- reactive({
-      gargoyle::watch("accounts")
       gargoyle::watch("postings")
       gargoyle::watch("rules")
       ledger$get_transactions()
@@ -146,7 +145,7 @@ mod_dashboard_server <- function(id){
       data <- transactions()
       req(nrow(data) > 0)
 
-      data |> calculate_net_worth() |> plot_net_worth()
+      data |> plot_net_worth()
     })
 
     # Generate the Cash Flow chart using Plotly

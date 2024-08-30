@@ -21,34 +21,42 @@
 #'   net_worth = cumsum(rnorm(365, mean = 0, sd = 100))
 #' )
 #'
-#' @importFrom dplyr mutate group_by summarize last
+#' @importFrom dplyr mutate group_by summarise first last bind_rows rename
+#' @importFrom tidyr complete fill replace_na
 #' @importFrom zoo as.yearmon
 #' @importFrom plotly plot_ly add_lines config layout
 #' @export
-plot_net_worth <- function(net_worth) {
+plot_net_worth <- function(transactions) {
+  # Prepare data
+  balance <- transactions |>
+    rename(date = booking_date) |>
+    group_by(account_name, date) |>
+    summarise(balance = first(balance), .groups = "drop") |>
+    complete(account_name, date = seq(min(date), max(date), by = "day")) |>
+    group_by(account_name) |>
+    fill(balance, .direction = "down") |>
+    replace_na(list(balance = 0))
+
+  # Calculate net worth
+  net_worth <- balance |>
+    group_by(date) |>
+    summarise(balance = sum(balance), .groups = "drop_last") |>
+    mutate(account_name = "Net Worth")
+
   # Calculate net worth by month
   net_worth_monthly <- net_worth |>
-    mutate(month = zoo::as.yearmon(date) |> zoo::as.Date(frac = 1)) |>
-    group_by(month) |>
-    summarize(net_worth = last(net_worth))
+    mutate(date = zoo::as.yearmon(date) |> zoo::as.Date(frac = 1)) |>
+    group_by(date) |>
+    summarise(balance = last(balance)) |>
+    mutate(account_name = "Net Worth Monthly")
 
   # Create the plot
-  fig <- plot_ly() |>
-    # Add daily net worth line
-    add_lines(data = net_worth, x = ~date, y = ~net_worth, name = "Daily Net Worth") |>
-    # Add monthly net worth line
-    add_lines(
-      data = net_worth_monthly, x = ~month, y = ~net_worth,
-      name = "Monthly Net Worth", line = list(shape = "spline")
-    ) |>
-    config(
-
-    ) |>
-    layout(
-      title = "Net Worth by Day and by Month",
-      xaxis = list(title = "Date"),
-      yaxis = list(title = "Net Worth (EUR)")
-    )
+  fig <- bind_rows(balance, net_worth, net_worth_monthly) |>
+    plot_ly(x = ~date, y = ~balance, color = ~account_name, type = 'scatter', mode = 'lines') |>
+    layout(title = 'Balance Over Time',
+           xaxis = list(title = 'Date'),
+           yaxis = list(title = 'Balance'),
+           legend = list(title = list(text = 'Account')))
 
   return(fig)
 }

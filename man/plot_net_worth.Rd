@@ -4,7 +4,7 @@
 \alias{plot_net_worth}
 \title{Plot Net Worth by Day and by Month}
 \usage{
-plot_net_worth(net_worth)
+plot_net_worth(transactions)
 }
 \arguments{
 \item{net_worth}{A data frame containing the net worth data. The data frame should have at least two columns:
