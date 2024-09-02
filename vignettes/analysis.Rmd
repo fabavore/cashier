@@ -45,7 +45,9 @@ Now for a start, we will calculate the net worth over time, i.e. the cumulative
 sum of the total transaction amounts:
 
 ```{r example}
-plot_net_worth(transactions)
+net_worth <- transactions |> calculate_net_worth()
+net_worth |> filter(account_name == "Net Worth") |> plot_net_worth()
+net_worth |> plot_net_worth()
 ```
 
 Now we plot the cash flow:

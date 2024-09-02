@@ -1,43 +1,36 @@
-#' Calculate Net Worth from Financial Transactions
+#' Calculate Net Worth
 #'
-#' @description
-#' This function calculates the net worth over time based on financial transactions. It sums up the cumulative transaction amounts (inflows and outflows) to calculate the net worth at each transaction date.
+#' This function calculates the net worth over time for multiple accounts.
+#' It fills in missing dates and balances, and then aggregates the balances to compute the total net worth for each day.
 #'
-#' @param transactions A data frame containing the transaction data. The data frame should have at least two columns:
-#' \itemize{
-#'   \item \code{booking_date}: The date of the transaction (as a Date object).
-#'   \item \code{amount}: The transaction amount (positive for inflows, negative for outflows).
-#' }
+#' @param transactions A data frame containing transaction data with at least two columns: `account_name` and `booking_date`.
+#' @return A list containing two data frames:
+#'   \describe{
+#'     \item{balance}{A data frame with the balance for each account and date.}
+#'     \item{net_worth}{A data frame with the aggregated net worth for each date.}
+#'   }
 #'
-#' @return A data frame with two columns:
-#' \itemize{
-#'   \item \code{date}: The date of each transaction.
-#'   \item \code{net_worth}: The cumulative net worth at each transaction date.
-#' }
+#' @importFrom dplyr mutate group_by summarise first bind_rows rename
+#' @importFrom tidyr complete fill replace_na
 #'
-#' @details
-#' This function assumes that the `transactions` data frame is sorted by date. The net worth is calculated by cumulatively summing the `amount` column.
-#'
-#' @examples
-#' # Example transactions data
-#' transactions <- data.frame(
-#'   booking_date = as.Date(c("2024-01-01", "2024-01-05", "2024-01-10")),
-#'   amount = c(1000, -200, 500)
-#' )
-#'
-#' # Calculate net worth
-#' net_worth <- calculate_net_worth(transactions)
-#' print(net_worth)
-#'
-#' @importFrom dplyr arrange group_by summarise mutate rename
-#' @export
+#' @noRd
 calculate_net_worth <- function(transactions) {
-  net_worth <- transactions |>
-    arrange(booking_date) |>
-    group_by(booking_date) |>
-    summarise(amount = sum(amount), .groups = "drop_last") |>
-    mutate(net_worth = cumsum(amount)) |>
-    rename(date = booking_date)
+  # Prepare data by renaming the date column and calculating daily balances for each account
+  balance <- transactions |>
+    rename(date = booking_date) |>
+    group_by(account_name, date) |>
+    summarise(balance = first(balance), .groups = "drop") |>
+    complete(account_name, date = seq(min(date), max(date), by = "day")) |>
+    group_by(account_name) |>
+    fill(balance, .direction = "down") |>
+    replace_na(list(balance = 0))
 
-  return(net_worth)
+  # Calculate net worth by summing up balances across accounts for each date
+  net_worth <- balance |>
+    group_by(date) |>
+    summarise(balance = sum(balance), .groups = "drop") |>
+    mutate(account_name = "Net Worth")
+
+  # Return the balance and net worth data frames
+  bind_rows(balance, net_worth)
 }

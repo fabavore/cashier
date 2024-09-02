@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bs4Dash sidebarMenu menuItem tabItems tabItem bs4Card
+#' @importFrom bs4Dash sidebarMenu menuItem tabItems tabItem bs4Card box boxSidebar
 mod_dashboard_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -30,11 +30,16 @@ mod_dashboard_ui <- function(id){
           tabItem(
             tabName = "overview",
             fluidRow(
-              bs4Dash::box(
+              box(
                 title = "Net Worth Over Time",
                 width = 12,
                 solidHeader = TRUE,
                 status = "primary",
+                sidebar = boxSidebar(
+                  id = ns("net_worth_plot_settings"),
+                  width = 25,
+                  checkboxInput(ns("net_worth_include_balances"), "Include balances")
+                ),
                 plotly::plotlyOutput(ns("net_worth_plot"))
               )
             ),
@@ -101,7 +106,7 @@ mod_dashboard_ui <- function(id){
 #' dashboard Server Functions
 #'
 #' @importFrom plotly renderPlotly plot_ly layout add_trace
-#' @importFrom dplyr mutate group_by summarize if_else
+#' @importFrom dplyr mutate group_by summarize if_else filter
 #' @importFrom tidyr pivot_wider
 #'
 #' @noRd
@@ -131,10 +136,18 @@ mod_dashboard_server <- function(id){
       ledger$get_transactions()
     })
 
+    net_worth <- reactive({
+      calculate_net_worth(transactions())
+    })
+
     # Generate the Net Worth chart using Plotly
     output$net_worth_plot <- renderPlotly({
-      data <- transactions()
+      data <- net_worth()
       req(nrow(data) > 0)
+
+      if (input$net_worth_include_balances == FALSE) {
+        data <- data |> filter(account_name == "Net Worth")
+      }
 
       data |> plot_net_worth()
     })

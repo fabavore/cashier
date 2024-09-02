@@ -1,48 +1,26 @@
 #' Plot Net Worth Over Time
 #'
-#' @description
-#' This function creates a `plotly` line plot that visualizes the net worth over time for multiple accounts. It handles missing balances by filling them down and calculating the total net worth by summing balances across accounts.
+#' This function generates a line plot of net worth over time using Plotly.
+#' Optionally, it can include balances of individual accounts in the plot.
 #'
-#' @param transactions A data frame or tibble containing transaction data. The data frame must include at least the following columns:
-#'   - `account_name`: Character, the name of the account.
-#'   - `booking_date`: Date, the date the transaction was booked.
-#'   - `balance`: Numeric, the balance of the account at the time of the transaction.
+#' @param net_worth A data frame containing the net worth data, with columns `date`, `balance`, and `account_name`.
+#' @param include_balances Logical, indicating whether to include the balances of individual accounts in the plot.
+#' Default is `FALSE`.
 #'
-#' @return A `plotly` plot object that displays the balances of individual accounts as well as the total net worth over time.
+#' @return A Plotly object representing the net worth over time plot.
+#'
+#' @details The function uses Plotly to create an interactive line plot of net worth.
+#' The plot displays the net worth balance over time with formatted hover information showing the balance in Euros.
 #'
 #' @examples
-#' # Example usage:
-#' transactions <- data.frame(
-#'   account_name = rep(c("Account A", "Account B"), each = 10),
-#'   booking_date = rep(seq.Date(as.Date("2023-01-01"), by = "month", length.out = 10), 2),
-#'   balance = c(1000, 1050, 1100, 1200, 1250, 1300, 1400, 1450, 1500, 1600,
-#'               500, 550, 600, 650, 700, 750, 800, 850, 900, 950)
-#' )
-#' plot_net_worth(transactions)
+#' # Assuming you have a net_worth data frame
+#' # plot_net_worth(net_worth)
 #'
-#' @importFrom dplyr mutate group_by summarise first bind_rows rename
-#' @importFrom tidyr complete fill replace_na
-#' @importFrom plotly plot_ly add_lines config layout
-#' @export
-plot_net_worth <- function(transactions) {
-  # Prepare data
-  balance <- transactions |>
-    rename(date = booking_date) |>
-    group_by(account_name, date) |>
-    summarise(balance = first(balance), .groups = "drop") |>
-    complete(account_name, date = seq(min(date), max(date), by = "day")) |>
-    group_by(account_name) |>
-    fill(balance, .direction = "down") |>
-    replace_na(list(balance = 0))
-
-  # Calculate net worth
-  net_worth <- balance |>
-    group_by(date) |>
-    summarise(balance = sum(balance), .groups = "drop") |>
-    mutate(account_name = "Net Worth")
-
-  # Create the plot
-  fig <- bind_rows(balance, net_worth) |>
+#' @importFrom plotly plot_ly layout style
+#'
+#' @noRd
+plot_net_worth <- function(net_worth, include_balances = FALSE) {
+  net_worth |>
     plot_ly(
       x = ~date, y = ~balance, color = ~account_name,
       type = 'scatter', mode = 'lines'
@@ -50,10 +28,12 @@ plot_net_worth <- function(transactions) {
     layout(
       xaxis = list(title = 'Date'),
       yaxis = list(title = 'Balance (€)'),
-      legend = list(title = list(text = 'Account'))
+      legend = list(title = list(text = 'Account')),
+      hovermode = "x unified"
+    ) |>
+    style(
+      hovertemplate = '%{y:,.2f} €'
     )
-
-  return(fig)
 }
 
 #' Plot Monthly Cash Flow
@@ -70,7 +50,7 @@ plot_net_worth <- function(transactions) {
 #'
 #' @importFrom dplyr mutate filter group_by summarise
 #' @importFrom zoo as.yearmon as.Date
-#' @importFrom plotly plot_ly add_trace layout config
+#' @importFrom plotly plot_ly add_trace layout config style
 #' @importFrom stringr str_starts
 #' @importFrom tidyr replace_na pivot_wider
 #' @examples
@@ -82,7 +62,7 @@ plot_net_worth <- function(transactions) {
 #' )
 #' plot_cash_flow(transactions)
 #'
-#' @export
+#' @noRd
 plot_cash_flow <- function(transactions, exclude_transfer = TRUE) {
   if (exclude_transfer) {
     transactions <- transactions |>
@@ -93,7 +73,7 @@ plot_cash_flow <- function(transactions, exclude_transfer = TRUE) {
   cash_flow <- transactions |>
     mutate(
       month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 0),
-      type = if_else(amount >= 0, "Income", "Expense")
+      type = if_else(amount >= 0, "Income", "Expenses")
     ) |>
     group_by(month, type) |>
     summarise(cash_flow = sum(amount, na.rm = TRUE), .groups = 'drop') |>
@@ -108,7 +88,7 @@ plot_cash_flow <- function(transactions, exclude_transfer = TRUE) {
       fill = 'tozeroy', line = list(color = 'green')
     ) |>
     add_trace(
-      y = ~ -Expense, name = 'Expense',
+      y = ~ -Expenses, name = 'Expenses',
       type = 'scatter', mode = 'lines+markers',
       fill = 'tozeroy', line = list(color = 'red')
     ) |>
@@ -116,7 +96,10 @@ plot_cash_flow <- function(transactions, exclude_transfer = TRUE) {
       xaxis = list(title = "Month"),
       yaxis = list(title = "Income and Expenses (€)"),
       legend = list(title = list(text = "Type")),
-      hovermode = "x"
+      hovermode = "x unified"
+    ) |>
+    style(
+      hovertemplate = "%{y:,.2f} €"
     )
 
   return(fig)
