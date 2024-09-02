@@ -82,6 +82,9 @@ ledger$get_transactions()
 ledger$import_postings(postings)
 ledger$postings$data
 ledger$get_transactions()
+
+transactions <- ledger$get_transactions()
+save(transactions, file = "../data/sample_transactions.rda")
 ```
 
 ```{r}
