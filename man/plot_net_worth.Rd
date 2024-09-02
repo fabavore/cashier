@@ -2,31 +2,30 @@
 % Please edit documentation in R/mod_dashboard_utils_plots.R
 \name{plot_net_worth}
 \alias{plot_net_worth}
-\title{Plot Net Worth by Day and by Month}
+\title{Plot Net Worth Over Time}
 \usage{
 plot_net_worth(transactions)
 }
 \arguments{
-\item{net_worth}{A data frame containing the net worth data. The data frame should have at least two columns:
-\itemize{
-  \item \code{date}: The date of each net worth calculation (as a Date object).
-  \item \code{net_worth}: The cumulative net worth at each date.
-}}
+\item{transactions}{A data frame or tibble containing transaction data. The data frame must include at least the following columns:
+- `account_name`: Character, the name of the account.
+- `booking_date`: Date, the date the transaction was booked.
+- `balance`: Numeric, the balance of the account at the time of the transaction.}
 }
 \value{
-A `plotly` object representing the combined net worth line chart, with both daily and monthly data.
+A `plotly` plot object that displays the balances of individual accounts as well as the total net worth over time.
 }
 \description{
-This function creates a combined line chart of net worth over time, showing both daily net worth and monthly aggregated net worth. The chart is created using the `plotly` package, with separate traces for daily and monthly data.
-}
-\details{
-The function creates an interactive line chart using `plot_ly`, displaying the trend of net worth over time. One trace shows the daily net worth, and another shows the monthly aggregated net worth. The chart is configured with titles for both axes.
+This function creates a `plotly` line plot that visualizes the net worth over time for multiple accounts. It handles missing balances by filling them down and calculating the total net worth by summing balances across accounts.
 }
 \examples{
-# Example net worth data
-net_worth <- data.frame(
-  date = seq.Date(from = as.Date("2024-01-01"), to = as.Date("2024-12-31"), by = "day"),
-  net_worth = cumsum(rnorm(365, mean = 0, sd = 100))
+# Example usage:
+transactions <- data.frame(
+  account_name = rep(c("Account A", "Account B"), each = 10),
+  booking_date = rep(seq.Date(as.Date("2023-01-01"), by = "month", length.out = 10), 2),
+  balance = c(1000, 1050, 1100, 1200, 1250, 1300, 1400, 1450, 1500, 1600,
+              500, 550, 600, 650, 700, 750, 800, 850, 900, 950)
 )
+plot_net_worth(transactions)
 
 }

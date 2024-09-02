@@ -45,14 +45,11 @@ Now for a start, we will calculate the net worth over time, i.e. the cumulative
 sum of the total transaction amounts:
 
 ```{r example}
-net_worth <- calculate_net_worth(transactions)
-head(net_worth)
+plot_net_worth(transactions)
 ```
 
-Let's plot the net worth over time for better insights:
+Now we plot the cash flow:
 
 ```{r}
-fig <- plot_net_worth(net_worth)
-fig
+plot_cash_flow(transactions)
 ```
-

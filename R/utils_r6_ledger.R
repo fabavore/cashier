@@ -100,12 +100,6 @@ Ledger <- R6::R6Class(
           self$rules$data,
           by = c("payee_name", "description"), suffix = c("", "_rule")
         ) |>
-        mutate(
-          category = coalesce(
-            category,
-            if_else(amount > 0, "Income: Unknown", "Expenses: Unknown")
-          )
-        ) |>
         collect() |>
         mutate(across(ends_with("date"), ~ as.Date(.x, format = "%Y-%m-%d")))
 
