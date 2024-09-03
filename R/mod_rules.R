@@ -7,13 +7,17 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
+#' @importFrom shinyjs useShinyjs disabled
 mod_rules_ui <- function(id){
   ns <- NS(id)
   tagList(
     bs4Dash::bs4Card(
       title = "Matching Rules",
       actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload")),
+      actionButton(ns("add"), "Add", icon = icon("add")),
       disabled(actionButton(ns("edit"), "Edit", icon = icon("edit"))),
+      disabled(actionButton(ns("delete"), "Delete", icon = icon("trash"))),
+      downloadButton(ns("download"), "Download CSV", icon = icon("download")),
       br(), br(),
       DT::DTOutput(ns("rule_table")),
       status = "primary",
@@ -25,8 +29,10 @@ mod_rules_ui <- function(id){
 
 #' rules Server Functions
 #'
+#' @importFrom shinyjs toggleState
 #' @importFrom dplyr slice pull
 #' @importFrom tidyr separate_longer_delim
+#' @importFrom readr write_csv2
 #' @noRd
 mod_rules_server <- function(id, ledger){
   moduleServer( id, function(input, output, session){
@@ -39,6 +45,7 @@ mod_rules_server <- function(id, ledger){
 
     observe({
       toggleState("edit", condition = not_null(input$rule_table_rows_selected))
+      toggleState("delete", condition = not_null(input$rule_table_rows_selected))
     })
 
     observe({
@@ -70,26 +77,27 @@ mod_rules_server <- function(id, ledger){
       removeModal()
     }) |> bindEvent(input$confirm_edit)
 
-    # Reactive expression to handle file import
-    import_data <- reactive({
-      req(input$csv_file)
-
-      # Process the uploaded file
-      new_data <- process_csv(input$csv_file$datapath)
-      new_data
-    }) |> bindEvent(input$import)
-
     # Open the import modal when the "Import CSV" button is clicked
     observe({
       showModal(create_import_modal(ns))
     }) |> bindEvent(input$open_import_modal)
 
-    # Update the transactions data when the import button is pressed
+    # Update the rule data when the import button is pressed
     observe({
-      ledger$rules$rows_append(import_data())
+      req(input$csv_file)
+
+      lapply(
+        input$csv_file$datapath,
+        function(file_name) {
+          ledger$import_rules(readr::read_csv2(
+            file_name, col_types = cols(.default = col_character())
+          ))
+        }
+      )
+
       gargoyle::trigger("rules")
       removeModal()
-    }) |> bindEvent(import_data())
+    }) |> bindEvent(input$import)
 
     # Display rules data in a table
     output$rule_table <- DT::renderDT({
@@ -103,6 +111,22 @@ mod_rules_server <- function(id, ledger){
     },
     select = "single",
     rownames = FALSE)
+
+    output$download <- downloadHandler(
+      filename = function() {
+        paste0("rules_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        data() |>
+          select(
+            `Counterparty Regex` = `payee_name`,
+            `Description Regex` = `description`,
+            `Category` = `category`,
+            `Tags` = `tags`
+          ) |>
+          write_csv2(file)
+      }
+    )
   })
 }
 

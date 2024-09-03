@@ -27,6 +27,12 @@ The function performs the following steps:
 - Extracts account information and either adds a new account or updates an existing account in the ledger.
 - Appends the postings data to the `postings` table in the ledger.
 - Missing values in character columns are replaced with empty strings.
+
+
+
+The function performs the following steps:
+- Selects relevant columns from the postings data.
+- Missing values in character columns are replaced with empty strings.
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -47,6 +53,7 @@ The function performs the following steps:
 \item \href{#method-Ledger-new}{\code{Ledger$new()}}
 \item \href{#method-Ledger-get_transactions}{\code{Ledger$get_transactions()}}
 \item \href{#method-Ledger-import_postings}{\code{Ledger$import_postings()}}
+\item \href{#method-Ledger-import_rules}{\code{Ledger$import_rules()}}
 \item \href{#method-Ledger-finalize}{\code{Ledger$finalize()}}
 \item \href{#method-Ledger-clone}{\code{Ledger$clone()}}
 }
@@ -96,6 +103,23 @@ Import postings from a processed CSV file into the ledger system.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{postings}}{A tibble containing processed postings data from the CSV file.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ledger-import_rules"></a>}}
+\if{latex}{\out{\hypertarget{method-Ledger-import_rules}{}}}
+\subsection{Method \code{import_rules()}}{
+Import rules from a CSV file into the ledger system.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ledger$import_rules(rules)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{rules}}{A tibble containing rules data from the CSV file.}
 }
 \if{html}{\out{</div>}}
 }

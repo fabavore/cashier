@@ -37,21 +37,3 @@ process_posting_csv <- function(file_path) {
     )
   )
 }
-
-process_rule_csv <- function(file_path) {
-  rules <- read_csv2(
-    file_path,
-    col_types = cols(
-      .default = col_character()
-    )
-  ) |>
-    select(
-      payee_name = `Counterparty Regex`,
-      description = `Description Regex`,
-      category = `Category`,
-      tags = `Tags`
-    ) |>
-    mutate(across(where(is.character), ~ replace_na(.x, "")))
-
-  return(rules)
-}

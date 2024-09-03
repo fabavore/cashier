@@ -69,7 +69,7 @@ mod_transactions_server <- function(id, ledger){
 
       lapply(
         input$csv_file$datapath,
-        \(file) ledger$import_postings(process_posting_csv(file))
+        \(file_name) ledger$import_postings(process_posting_csv(file_name))
       )
 
       gargoyle::trigger("accounts")

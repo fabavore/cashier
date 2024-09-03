@@ -117,7 +117,7 @@ Ledger <- R6::R6Class(
     #' - Appends the postings data to the `postings` table in the ledger.
     #' - Missing values in character columns are replaced with empty strings.
     #'
-    #' @importFrom dplyr select filter pull mutate across
+    #' @importFrom dplyr select filter pull mutate across where
     #' @importFrom tibble tibble
     #' @importFrom tidyr replace_na
     import_postings = function(postings) {
@@ -164,6 +164,30 @@ Ledger <- R6::R6Class(
         mutate(across(where(is.character), ~ replace_na(.x, "")))
 
       self$postings$rows_append(postings)
+    },
+
+    #' @description Import rules from a CSV file into the ledger system.
+    #'
+    #' @param rules A tibble containing rules data from the CSV file.
+    #'
+    #' @details
+    #' The function performs the following steps:
+    #' - Selects relevant columns from the postings data.
+    #' - Missing values in character columns are replaced with empty strings.
+    #'
+    #' @importFrom dplyr select mutate across where
+    #' @importFrom tidyr replace_na
+    import_rules = function(rules) {
+      rules <- rules |>
+        select(
+          payee_name = `Counterparty Regex`,
+          description = `Description Regex`,
+          category = `Category`,
+          tags = `Tags`
+        ) |>
+        mutate(across(where(is.character), ~ replace_na(.x, "")))
+
+      self$rules$rows_append(rules)
     },
 
     #' @description Disconnect the database connection when the `Ledger` object is finalized.

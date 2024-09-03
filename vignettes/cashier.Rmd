@@ -86,9 +86,3 @@ ledger$get_transactions()
 transactions <- ledger$get_transactions()
 save(transactions, file = "../data/sample_transactions.rda")
 ```
-
-```{r}
-ledger$con |> DBI::dbExecute("DROP TABLE account")
-ledger$con |> DBI::dbExecute("DROP TABLE posting")
-ledger$con |> DBI::dbExecute("DROP TABLE rule")
-```
