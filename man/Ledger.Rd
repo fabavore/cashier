@@ -58,7 +58,7 @@ The function performs the following steps:
 Initialize the `Ledger` object by connecting to a SQLite database
 and creating the necessary tables if they don't exist.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ledger$new(db_path = "ledger.sql")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ledger$new(db_path = "~/ledger.sql")}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

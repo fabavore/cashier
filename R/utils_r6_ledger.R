@@ -24,7 +24,7 @@ Ledger <- R6::R6Class(
     #' and creating the necessary tables if they don't exist.
     #'
     #' @param db_path The path to the SQLite database file. Defaults to "ledger.sql".
-    initialize = function(db_path = "ledger.sql") {
+    initialize = function(db_path = "~/ledger.sql") {
       self$con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
 
       # Create the accounts table if it doesn't exist

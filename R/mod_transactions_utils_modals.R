@@ -16,9 +16,13 @@ create_import_modal <- function(ns) {
       bs4Dash::actionButton(ns("import"), "Import", status = "primary")
     ),
     fluidRow(
-      column(width = 12,
-             fileInput(ns("csv_file"), "Choose CSV File",
-                       accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+      column(
+        width = 12,
+        fileInput(
+          ns("csv_file"), "Choose CSV File",
+          accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"),
+          multiple = TRUE
+        )
       )
     ),
     easyClose = TRUE
