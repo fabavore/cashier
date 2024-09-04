@@ -31,7 +31,10 @@ create_rule_edit_modal <- function(ns,
 
     footer = tagList(
       modalButton("Cancel"),
-      bs4Dash::actionButton(ns(str_glue("confirm_rule_{edit_type}")), "Confirm", status = "primary")
+      bs4Dash::actionButton(
+        ns(str_glue("confirm_rule_{edit_type}")), "Confirm",
+        status = ifelse(edit_type == "delete", "danger", "primary")
+      )
     ),
     easyClose = TRUE
   )

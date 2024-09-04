@@ -89,7 +89,7 @@ Ledger <- R6::R6Class(
     #' - Transactions that aren't matched to any rule are categorized as "Income: Unknown" or "Expenses: Unknown" based on the transaction amount.
     #' - Dates are converted from character format to `Date` objects.
     #'
-    #' @importFrom dplyr left_join select mutate coalesce if_else collect mutate across ends_with distinct
+    #' @importFrom dplyr left_join select distinct collect mutate across ends_with
     get_transactions = function() {
       transactions <- self$postings$data |>
         left_join(

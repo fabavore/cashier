@@ -4,7 +4,6 @@
 #' Optionally, it can include balances of individual accounts in the plot.
 #'
 #' @param net_worth A data frame containing the net worth data, with columns `date`, `balance`, and `account_name`.
-#' @param include_balances Logical, indicating whether to include the balances of individual accounts in the plot.
 #' Default is `FALSE`.
 #'
 #' @return A Plotly object representing the net worth over time plot.
@@ -19,7 +18,7 @@
 #' @importFrom plotly plot_ly layout style
 #'
 #' @noRd
-plot_net_worth <- function(net_worth, include_balances = FALSE) {
+plot_net_worth <- function(net_worth) {
   net_worth |>
     plot_ly(
       x = ~date, y = ~balance, color = ~account_name,

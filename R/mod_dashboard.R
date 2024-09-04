@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-#' @importFrom bs4Dash sidebarMenu menuItem tabItems tabItem bs4Card box boxSidebar
+#' @importFrom bs4Dash sidebarMenu menuItem tabItems tabItem bs4Card box boxSidebar descriptionBlock
 mod_dashboard_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -21,14 +21,56 @@ mod_dashboard_ui <- function(id){
           menuItem("Accounts", tabName = "accounts", icon = icon("bank")),
           menuItem("Transactions", tabName = "transactions", icon = icon("money-bill-transfer")),
           menuItem("Automation", tabName = "rules", icon = icon("microchip")),
-          menuItem("Expenses", tabName = "expenses", icon = icon("file-invoice-dollar")),
-          menuItem("Revenues", tabName = "revenues", icon = icon("money-bill-alt"))
+          menuItem("Income", tabName = "income", icon = icon("money-bill-alt")),
+          menuItem("Expenses", tabName = "expenses", icon = icon("file-invoice-dollar"))
         )
       ),
       bs4Dash::dashboardBody(
         tabItems(
           tabItem(
             tabName = "overview",
+            fluidRow(
+              box(
+                title = "Current Net Worth",
+                width = 4,
+                status = "primary",
+                collapsible = FALSE,
+                descriptionBlock(
+                  number = textOutput(ns("current_net_worth")),
+                  numberColor = "primary",
+                  header = "Total Net Worth",
+                  rightBorder = FALSE
+                )
+              ),
+              box(
+                title = "Total Cash Flow",
+                width = 4,
+                status = "primary",
+                collapsible = FALSE,
+                fluidRow(
+                  column(
+                    width = 6,
+                    descriptionBlock(
+                      number = textOutput(ns("total_income")),
+                      numberColor = "success",
+                      numberIcon = icon("caret-up"),
+                      header = "Total Income",
+                      rightBorder = TRUE
+                    )
+                  ),
+                  column(
+                    width = 6,
+                    descriptionBlock(
+                      number = textOutput(ns("total_expenses")),
+                      numberColor = "danger",
+                      numberIcon = icon("caret-down"),
+                      header = "Total Expenses",
+                      rightBorder = FALSE
+                    )
+                  )
+                )
+              )
+            ),
             fluidRow(
               box(
                 title = "Net Worth Over Time",
@@ -70,14 +112,14 @@ mod_dashboard_ui <- function(id){
             mod_rules_ui(ns("rules_1"))
           ),
           tabItem(
+            tabName = "income",
+            h2("Income"),
+            p("This is the revenues tab.")
+          ),
+          tabItem(
             tabName = "expenses",
             h2("Expenses"),
             p("This is the expenses tab.")
-          ),
-          tabItem(
-            tabName = "revenues",
-            h2("Revenues"),
-            p("This is the revenues tab.")
           )
         )
       ),
@@ -106,7 +148,7 @@ mod_dashboard_ui <- function(id){
 #' dashboard Server Functions
 #'
 #' @importFrom plotly renderPlotly plot_ly layout add_trace
-#' @importFrom dplyr mutate group_by summarize if_else filter
+#' @importFrom dplyr mutate group_by summarize if_else filter pull
 #' @importFrom tidyr pivot_wider
 #'
 #' @noRd
@@ -137,13 +179,23 @@ mod_dashboard_server <- function(id){
     })
 
     net_worth <- reactive({
-      calculate_net_worth(transactions())
+      data <- transactions()
+      req(nrow(data) > 0)
+
+      calculate_net_worth(data)
+    })
+
+    output$current_net_worth <- renderText({
+      net_worth() |>
+        filter(account_name == "Net Worth") |>
+        tail(1) |>
+        pull(balance) |>
+        paste("€")
     })
 
     # Generate the Net Worth chart using Plotly
     output$net_worth_plot <- renderPlotly({
       data <- net_worth()
-      req(nrow(data) > 0)
 
       if (input$net_worth_include_balances == FALSE) {
         data <- data |> filter(account_name == "Net Worth")

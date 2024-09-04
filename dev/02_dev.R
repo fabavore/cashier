@@ -24,10 +24,12 @@ golem::add_module("dashboard", utils = "plots", with_test = TRUE)
 golem::add_module("accounts")
 golem::add_module("transactions", utils = "modals")
 golem::add_module("rules", utils = "modals")
+golem::add_module("cash_flow")
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
 golem::add_fct("net_worth")
+golem::add_fct("cash_flow")
 golem::add_utils("r6_finance_data")
 golem::add_utils("r6_ledger")
 golem::add_utils("csv")
