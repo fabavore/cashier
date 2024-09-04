@@ -49,12 +49,28 @@ FinanceData <- R6::R6Class(
     #' It then updates the rows in the table, matching rows by their `id` column.
     #' Unmatched rows are ignored, and the operation will be performed in-place.
     #'
-    #' @importFrom dplyr mutate across ends_with collect rows_update
+    #' @importFrom dplyr mutate across ends_with rows_update
     rows_update = function(y, ...) {
       y <- y |>
         mutate(across(ends_with("date"), as.character))
       self$data |>
         rows_update(y, by = "id", ..., unmatched = "ignore", copy = TRUE, in_place = TRUE)
+    },
+
+    #' @description
+    #' Delete existing rows in the database table managed by the `FinanceData` object.
+    #'
+    #' @param y A tibble containing the rows to delete.
+    #' @param ... Additional arguments passed to `dplyr::rows_delete`.
+    #'
+    #' @details
+    #' The function deletes the rows in the table, matching rows by their `id` column.
+    #' Unmatched rows are ignored, and the operation will be performed in-place.
+    #'
+    #' @importFrom dplyr rows_delete
+    rows_delete = function(y, ...) {
+      self$data |>
+        rows_delete(y, by = "id", ..., unmatched = "ignore", copy = TRUE, in_place = TRUE)
     },
 
     #' @description

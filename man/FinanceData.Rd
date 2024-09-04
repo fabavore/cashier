@@ -24,6 +24,11 @@ Unmatched rows are ignored, and the operation will be performed in-place.
 
 
 
+The function deletes the rows in the table, matching rows by their `id` column.
+Unmatched rows are ignored, and the operation will be performed in-place.
+
+
+
 The function collects the data from the database and converts any columns that end with "date" from character
 format back to `Date` objects, using the format `%Y-%m-%d`.
 }
@@ -40,6 +45,7 @@ format back to `Date` objects, using the format `%Y-%m-%d`.
 \item \href{#method-FinanceData-new}{\code{FinanceData$new()}}
 \item \href{#method-FinanceData-rows_append}{\code{FinanceData$rows_append()}}
 \item \href{#method-FinanceData-rows_update}{\code{FinanceData$rows_update()}}
+\item \href{#method-FinanceData-rows_delete}{\code{FinanceData$rows_delete()}}
 \item \href{#method-FinanceData-get_data}{\code{FinanceData$get_data()}}
 \item \href{#method-FinanceData-clone}{\code{FinanceData$clone()}}
 }
@@ -97,6 +103,25 @@ Update existing rows in the database table managed by the `FinanceData` object.
 \item{\code{y}}{A tibble containing the rows to update.}
 
 \item{\code{...}}{Additional arguments passed to `dplyr::rows_update`.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FinanceData-rows_delete"></a>}}
+\if{latex}{\out{\hypertarget{method-FinanceData-rows_delete}{}}}
+\subsection{Method \code{rows_delete()}}{
+Delete existing rows in the database table managed by the `FinanceData` object.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{FinanceData$rows_delete(y, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{y}}{A tibble containing the rows to delete.}
+
+\item{\code{...}}{Additional arguments passed to `dplyr::rows_delete`.}
 }
 \if{html}{\out{</div>}}
 }

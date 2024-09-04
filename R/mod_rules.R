@@ -13,13 +13,34 @@ mod_rules_ui <- function(id){
   tagList(
     bs4Dash::bs4Card(
       title = "Matching Rules",
-      actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload")),
-      actionButton(ns("add"), "Add", icon = icon("add")),
-      disabled(actionButton(ns("edit"), "Edit", icon = icon("edit"))),
-      disabled(actionButton(ns("delete"), "Delete", icon = icon("trash"))),
-      downloadButton(ns("download"), "Download CSV", icon = icon("download")),
-      br(), br(),
+      fluidRow(
+        column(
+          width = 6,
+          actionButton(ns("append"), "Add", icon = icon("add")),
+          disabled(actionButton(ns("update"), "Edit", icon = icon("edit"))),
+          disabled(actionButton(ns("delete"), "Delete", icon = icon("trash"))),
+        ),
+        column(
+          width = 6,
+          class = "text-right",
+          disabled(actionButton(ns("move_up"), "Move up", icon = icon("caret-up"))),
+          disabled(actionButton(ns("move_down"), "Move down", icon = icon("caret-down")))
+        )
+      ),
+      br(),
       DT::DTOutput(ns("rule_table")),
+      br(),
+      fluidRow(
+        column(
+          width = 6,
+          actionButton(ns("open_import_modal"), "Import CSV", icon = icon("upload"))
+        ),
+        column(
+          width = 6,
+          class = "text-right",
+          downloadButton(ns("download"), "Download CSV", icon = icon("download"))
+        )
+      ),
       status = "primary",
       solidHeader = TRUE,
       width = 12
@@ -30,8 +51,10 @@ mod_rules_ui <- function(id){
 #' rules Server Functions
 #'
 #' @importFrom shinyjs toggleState
-#' @importFrom dplyr slice pull
+#' @importFrom DT selectRows
+#' @importFrom dplyr slice pull mutate arrange select across
 #' @importFrom tidyr separate_longer_delim
+#' @importFrom stringr str_split_1
 #' @importFrom readr write_csv2
 #' @noRd
 mod_rules_server <- function(id, ledger){
@@ -44,25 +67,51 @@ mod_rules_server <- function(id, ledger){
     })
 
     observe({
-      toggleState("edit", condition = not_null(input$rule_table_rows_selected))
+      toggleState("update", condition = not_null(input$rule_table_rows_selected))
       toggleState("delete", condition = not_null(input$rule_table_rows_selected))
+      toggleState(
+        "move_up",
+        condition = not_null(input$rule_table_rows_selected) && input$rule_table_rows_selected > 1
+      )
+      toggleState(
+        "move_down",
+        condition = not_null(input$rule_table_rows_selected) && input$rule_table_rows_selected < nrow(data())
+      )
+    })
+
+    edit_modal_choices <- reactive({
+      list(
+        category = data() |> pull(category) |> unique(),
+        tags = data() |> separate_longer_delim(tags, ", ") |> pull(tags) |> unique()
+      )
     })
 
     observe({
-      values <- data() |> slice(input$rule_table_rows_selected)
+      showModal(create_rule_edit_modal(ns, edit_type = "append", choices = edit_modal_choices()))
+    }) |> bindEvent(input$append)
 
-      showModal(create_edit_rule_modal(ns, values))
-      updateSelectizeInput(
-        session, "category",
-        choices = data() |> pull(category) |> unique(),
-        selected = values |> pull(category)
-      )
-      updateSelectizeInput(
-        session, "tags",
-        choices = data() |> separate_longer_delim(tags, ", ") |> pull(tags) |> unique(),
-        selected = values |> separate_longer_delim(tags, ", ") |> pull(tags)
-      )
-    }) |> bindEvent(input$edit)
+    observe({
+      ledger$rules$rows_append(data.frame(
+        payee_name = input$payee_name,
+        description = input$description,
+        category = input$category,
+        tags = input$tags |> paste(collapse = ", ")
+      ))
+
+      gargoyle::trigger("rules")
+      removeModal()
+    }) |> bindEvent(input$confirm_rule_append)
+
+    observe({
+      values <- data() |> slice(input$rule_table_rows_selected) |> as.list()
+      values$tags <- values$tags |> str_split_1(", ")
+
+      showModal(create_rule_edit_modal(
+        ns, edit_type = "update",
+        choices = edit_modal_choices(),
+        values = values
+      ))
+    }) |> bindEvent(input$update)
 
     observe({
       ledger$rules$rows_update(data.frame(
@@ -75,7 +124,42 @@ mod_rules_server <- function(id, ledger){
 
       gargoyle::trigger("rules")
       removeModal()
-    }) |> bindEvent(input$confirm_edit)
+    }) |> bindEvent(input$confirm_rule_update)
+
+    observe({
+      showModal(create_rule_edit_modal(ns, edit_type = "delete"))
+    }) |> bindEvent(input$delete)
+
+    observe({
+      ledger$rules$rows_delete(data.frame(
+        `id` = data() |> slice(input$rule_table_rows_selected) |> pull(`id`)
+      ))
+
+      gargoyle::trigger("rules")
+      removeModal()
+    }) |> bindEvent(input$confirm_rule_delete)
+
+    observe({
+      selected <- input$rule_table_rows_selected
+      data_swapped <- data() |>
+        slice(selected, selected - 1) |>
+        mutate(`id` = rev(`id`))
+
+      ledger$rules$rows_update(data_swapped |> mutate(across(-`id`, ~ `id` |> as.character())))
+      ledger$rules$rows_update(data_swapped)
+      gargoyle::trigger("rules")
+    }) |> bindEvent(input$move_up)
+
+    observe({
+      selected <- input$rule_table_rows_selected
+      data_swapped <- data() |>
+        slice(selected, selected + 1) |>
+        mutate(`id` = rev(`id`))
+
+      ledger$rules$rows_update(data_swapped |> mutate(across(-`id`, ~ `id` |> as.character())))
+      ledger$rules$rows_update(data_swapped)
+      gargoyle::trigger("rules")
+    }) |> bindEvent(input$move_down)
 
     # Open the import modal when the "Import CSV" button is clicked
     observe({
@@ -103,6 +187,7 @@ mod_rules_server <- function(id, ledger){
     output$rule_table <- DT::renderDT({
       data() |>
         select(
+          `Precedence` = `id`,
           `Counterparty Regex` = `payee_name`,
           `Description Regex` = `description`,
           `Category` = `category`,

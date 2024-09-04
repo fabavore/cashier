@@ -85,13 +85,13 @@ mod_transactions_server <- function(id, ledger){
     observe({
       req(input$transaction_table_rows_selected)
 
-      showModal(create_rule_modal(
-        ns,
-        values = data() |> slice(input$transaction_table_rows_selected),
+      showModal(create_rule_edit_modal(
+        ns, edit_type = "append",
         choices = list(
-          category = ledger$rules$data |> pull(category) |> unique(),
-          tags = ledger$rules$data |> pull(tags) |> unique()
-        )
+          category = ledger$rules$get_data() |> pull(category) |> unique(),
+          tags = ledger$rules$get_data() |> separate_longer_delim(tags, ", ") |> pull(tags) |> unique()
+        ),
+        values = data() |> slice(input$transaction_table_rows_selected)
       ))
     }) |> bindEvent(input$open_rule_modal)
 
@@ -105,7 +105,7 @@ mod_transactions_server <- function(id, ledger){
       gargoyle::trigger("rules")
       ledger$rules$rows_append(new_rule)
       removeModal()
-    }) |> bindEvent(input$create_rule)
+    }) |> bindEvent(input$confirm_rule_append)
   })
 }
 
