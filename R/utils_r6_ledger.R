@@ -34,7 +34,7 @@ Ledger <- R6::R6Class(
           account_name TEXT,
           account_iban TEXT,
           opening_date TEXT,
-          opening_amount REAL,
+          opening_balance REAL,
           currency TEXT,
           UNIQUE(account_iban) ON CONFLICT IGNORE
         )
@@ -145,7 +145,7 @@ Ledger <- R6::R6Class(
         account_name = opening$account_name,
         account_iban = opening$account_iban,
         opening_date = opening$booking_date,
-        opening_amount = opening$balance - opening$amount,
+        opening_balance = opening$balance - opening$amount,
         currency = opening$currency
       )
 

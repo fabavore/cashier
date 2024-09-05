@@ -39,7 +39,7 @@ mod_accounts_server <- function(id, ledger){
           `Account Name` = `account_name`,
           `Account IBAN` = `account_iban`,
           `Opening Date` = `opening_date`,
-          `Opening Amount` = `opening_amount`,
+          `Opening Balance` = `opening_balance`,
           `Currency` = `currency`
         )
     },
