@@ -113,13 +113,11 @@ mod_dashboard_ui <- function(id){
           ),
           tabItem(
             tabName = "income",
-            h2("Income"),
-            p("This is the revenues tab.")
+            mod_cash_flow_ui(ns("cash_flow_1"))
           ),
           tabItem(
             tabName = "expenses",
-            h2("Expenses"),
-            p("This is the expenses tab.")
+            mod_cash_flow_ui(ns("cash_flow_2"))
           )
         )
       ),
@@ -177,6 +175,9 @@ mod_dashboard_server <- function(id){
       gargoyle::watch("rules")
       ledger$get_transactions()
     })
+
+    mod_cash_flow_server("cash_flow_1", transactions, type = "Income")
+    mod_cash_flow_server("cash_flow_2", transactions, type = "Expenses")
 
     net_worth <- reactive({
       data <- transactions()

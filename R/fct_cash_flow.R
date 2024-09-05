@@ -1,4 +1,6 @@
+#' @importFrom dplyr coalesce
 calculate_cash_flow <- function(transactions) {
+  transactions |>
   mutate(
     month = zoo::as.yearmon(booking_date) |> zoo::as.Date(frac = 0),
     category = category |>
